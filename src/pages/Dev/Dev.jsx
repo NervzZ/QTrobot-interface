@@ -7,14 +7,6 @@ import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import CopyIcon from '@mui/icons-material/ContentCopy'
 
-import {createTheme, ThemeProvider} from '@mui/material/styles'
-
-const darkTheme = createTheme({
-    palette: {
-        mode: 'dark',
-    }
-})
-
 const Dev = () => {
     const [commandFieldValue, setCommandFieldValue] = useState('');
 
@@ -38,38 +30,36 @@ const Dev = () => {
     }
 
     return (
-        <ThemeProvider theme={darkTheme}>
-            <div className="App" style={{
-                maxWidth: '1280px',
-                margin: '50px auto',
-            }}>
-                <Table
-                    onRowSelect={handleRowSelect}
+        <div className="App" style={{
+            maxWidth: '1280px',
+            margin: '50px auto',
+        }}>
+            <Table
+                onRowSelect={handleRowSelect}
+            />
+            <Box
+                sx={{
+                    display: 'flex'
+                }}
+            >
+                <TextField
+                    id="outlined-basic"
+                    label="Generated command"
+                    variant="outlined"
+                    fullWidth
+                    onChange={handleChange}
+                    value={commandFieldValue}
                 />
-                <Box
-                    sx={{
-                        display: 'flex'
-                    }}
+                <IconButton
+                    type="button"
+                    sx={{p: '10px'}}
+                    aria-label="Copy"
+                    onClick={() => handleCopyClick(commandFieldValue)}
                 >
-                    <TextField
-                        id="outlined-basic"
-                        label="Generated command"
-                        variant="outlined"
-                        fullWidth
-                        onChange={handleChange}
-                        value={commandFieldValue}
-                    />
-                    <IconButton
-                        type="button"
-                        sx={{p: '10px'}}
-                        aria-label="Copy"
-                        onClick={() => handleCopyClick(commandFieldValue)}
-                    >
-                        <CopyIcon/>
-                    </IconButton>
-                </Box>
-            </div>
-        </ThemeProvider>
+                    <CopyIcon/>
+                </IconButton>
+            </Box>
+        </div>
     )
 }
 
