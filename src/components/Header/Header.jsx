@@ -8,16 +8,26 @@ import Typography from '@mui/material/Typography';
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
+import strings from 'SRC/strings/strings.json';
+import {BottomNavigation, BottomNavigationAction} from "@mui/material";
+import {Home, PersonAdd, Visibility} from "@mui/icons-material";
+import {useNavigate} from "react-router-dom";
+
 
 const Header = () => {
-    return <TopBar id="my-id"></TopBar>
+    return (
+        <>
+            <TopBar id="my-id"/>
+            <NavBar/>
+        </>
+    )
 }
 
 function TopBar() {
     return (
         <Box sx={{flexGrow: 1}}>
-            <AppBar position="static">
-                <Toolbar>
+            <AppBar position="static" enableColorOnDark="true">
+                <Toolbar variant="dense">
                     <IconButton
                         size="large"
                         edge="start"
@@ -28,12 +38,42 @@ function TopBar() {
                         <MenuIcon/>
                     </IconButton>
                     <Typography align="left" variant="h6" component="div" sx={{flexGrow: 1}}>
-                        News
+                        {strings.appVersion}
                     </Typography>
-                    <Button color="inherit">Login</Button>
+                    <Button color="inherit">Logout</Button>
                 </Toolbar>
             </AppBar>
         </Box>
+    );
+}
+
+function NavBar() {
+    const [value, setValue] = React.useState(0);
+    const navigate = useNavigate()
+
+    const handleChange = (event, newValue) => {
+        setValue(newValue);
+        switch (newValue) {
+            case 0: //home button (dev)
+                navigate('/')
+                break;
+            case 1: //database button
+                navigate('/Database')
+                break;
+            case 2: //visualisation button
+                navigate('/Visualisation')
+                break;
+            default:
+                break;
+        }
+    };
+
+    return (
+        <BottomNavigation value={value} onChange={handleChange}>
+            <BottomNavigationAction label="Dev" showLabel="true" icon={<Home/>}/>
+            <BottomNavigationAction label="Database" showLabel="true" icon={<PersonAdd/>}/>
+            <BottomNavigationAction label="Notifications" showLabel="true" icon={<Visibility/>}/>
+        </BottomNavigation>
     );
 }
 
