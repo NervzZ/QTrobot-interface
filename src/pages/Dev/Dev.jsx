@@ -1,15 +1,13 @@
-import { useState, useEffect, useMemo } from 'react'
+import {useState} from 'react'
 import 'SRC/App.css'
 
 import Table from 'SRC/components/common/SortedTable/SortedTable.jsx'
-
-import Button from '@mui/material/Button'
 import Box from '@mui/material/Box'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import CopyIcon from '@mui/icons-material/ContentCopy'
 
-import { ThemeProvider, createTheme } from '@mui/material/styles'
+import {createTheme, ThemeProvider} from '@mui/material/styles'
 
 const darkTheme = createTheme({
     palette: {
@@ -41,7 +39,10 @@ const Dev = () => {
 
     return (
         <ThemeProvider theme={darkTheme}>
-            <div className="App">
+            <div className="App" style={{
+                maxWidth: '1280px',
+                margin: '50px auto',
+            }}>
                 <Table
                     onRowSelect={handleRowSelect}
                 />
@@ -60,7 +61,7 @@ const Dev = () => {
                     />
                     <IconButton
                         type="button"
-                        sx={{ p: '10px' }}
+                        sx={{p: '10px'}}
                         aria-label="Copy"
                         onClick={() => handleCopyClick(commandFieldValue)}
                     >
