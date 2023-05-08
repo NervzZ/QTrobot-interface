@@ -12,5 +12,7 @@ export const colors = {
     onSecondaryContainer: '#ffffff',
     success: '#46ce0f',
     error: '#bd0000',
-    warning: '#fff223'
+    warning: '#fff223',
+    orange: '#fda626',
+    grey: '#575757'
 }
