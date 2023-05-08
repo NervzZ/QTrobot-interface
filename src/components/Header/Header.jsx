@@ -12,6 +12,8 @@ import strings from 'SRC/strings/strings.json';
 import {BottomNavigation, BottomNavigationAction} from "@mui/material";
 import {Home, PersonAdd, Visibility} from "@mui/icons-material";
 import {useNavigate} from "react-router-dom";
+import {auth} from "SRC/firebaseConfig"
+import {signOut} from "firebase/auth";
 
 
 const Header = () => {
@@ -24,6 +26,16 @@ const Header = () => {
 }
 
 function TopBar() {
+
+    const handleLogout = () => {
+        signOut(auth).then(() => {
+            // Sign-out successful.
+            console.log("Signed out successfully")
+        }).catch((error) => {
+            alert(error.message)
+        });
+    }
+
     return (
         <Box sx={{flexGrow: 1}}>
             <AppBar position="static" enableColorOnDark="true">
@@ -40,7 +52,12 @@ function TopBar() {
                     <Typography align="left" variant="h6" component="div" sx={{flexGrow: 1}}>
                         {strings.appVersion}
                     </Typography>
-                    <Button color="inherit">Logout</Button>
+                    <Button
+                        color="inherit"
+                        onClick={handleLogout}
+                    >
+                        Logout
+                    </Button>
                 </Toolbar>
             </AppBar>
         </Box>
