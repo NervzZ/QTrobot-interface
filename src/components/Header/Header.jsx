@@ -38,7 +38,7 @@ function TopBar() {
 
     return (
         <Box sx={{flexGrow: 1}}>
-            <AppBar position="static" enableColorOnDark="true">
+            <AppBar position="static" enableColorOnDark={true}>
                 <Toolbar variant="dense">
                     <IconButton
                         size="large"
@@ -87,9 +87,9 @@ function NavBar() {
 
     return (
         <BottomNavigation value={value} onChange={handleChange}>
-            <BottomNavigationAction label="Dev" showLabel="true" icon={<Home/>}/>
-            <BottomNavigationAction label="Database" showLabel="true" icon={<PersonAdd/>}/>
-            <BottomNavigationAction label="Notifications" showLabel="true" icon={<Visibility/>}/>
+            <BottomNavigationAction label="Dev" showLabel={true} icon={<Home/>}/>
+            <BottomNavigationAction label="Database" showLabel={true} icon={<PersonAdd/>}/>
+            <BottomNavigationAction label="Notifications" showLabel={true} icon={<Visibility/>}/>
         </BottomNavigation>
     );
 }
