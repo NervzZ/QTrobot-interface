@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import {getAuth} from "firebase/auth";
+import {getDatabase} from "firebase/database";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -10,6 +11,7 @@ import {getAuth} from "firebase/auth";
 const firebaseConfig = {
     apiKey: "AIzaSyAbi0leBeoBVXvJiX9yvmuPe0JidWLzLe0",
     authDomain: "qtrobot-interface.firebaseapp.com",
+    databaseURL: "https://qtrobot-interface-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "qtrobot-interface",
     storageBucket: "qtrobot-interface.appspot.com",
     messagingSenderId: "1069557423332",
@@ -23,3 +25,4 @@ const analytics = getAnalytics(app);
 
 export const auth = getAuth(app);
 export default app
+export const db = getDatabase(app)

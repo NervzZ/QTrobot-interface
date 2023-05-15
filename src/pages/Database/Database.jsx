@@ -1,4 +1,5 @@
 import * as React from 'react';
+import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {alpha, createTheme, ThemeProvider} from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -20,10 +21,21 @@ import Switch from '@mui/material/Switch';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {visuallyHidden} from '@mui/utils';
 import {Add, EditOutlined} from "@mui/icons-material";
-import {Chip} from "@mui/material";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
+import {
+    Button,
+    Chip,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Radio,
+    RadioGroup,
+    TextField
+} from "@mui/material";
 import {colors} from "SRC/theme/theme.jsx";
+import UserViewModel from "SRC/viewmodels/UserViewModel.jsx";
+import {onValue, ref} from "firebase/database";
+import {db} from "SRC/firebaseConfig.js";
 
 function createData(UID, Firstname, Lastname, Email, Privilege) {
     return {
@@ -34,13 +46,6 @@ function createData(UID, Firstname, Lastname, Email, Privilege) {
         Privilege
     };
 }
-
-const rows = [
-    createData('0', 'Josh', 'Smith', 'test@test.com', 'dev'),
-    createData('1', 'Edmond', 'Gilliger', 'test@test.com', 'dev'),
-    createData('2', 'Victoire', 'Jordan', 'test@test.com', 'prof'),
-    createData('3', 'Emma', 'Gerber', 'test@test.com', 'prof'),
-];
 
 function descendingComparator(a, b, orderBy) {
     if (b[orderBy] < a[orderBy]) {
@@ -149,6 +154,15 @@ EnhancedTableHead.propTypes = {
 
 function EnhancedTableToolbar(props) {
     const {numSelected} = props;
+    const [open, setOpen] = useState(false);
+
+    const handleOpen = () => {
+        setOpen(true);
+    };
+
+    const handleClose = () => {
+        setOpen(false);
+    };
 
     return (
         <Toolbar
@@ -161,6 +175,9 @@ function EnhancedTableToolbar(props) {
                 }),
             }}
         >
+            {/* This div is just the diablog (popup) that shows the form when we press the + button */}
+            <CreateUserForm open={open} handleClose={handleClose}/>
+
             {numSelected > 0 ? (
                 <Typography
                     sx={{flex: '1 1 100%'}}
@@ -181,7 +198,7 @@ function EnhancedTableToolbar(props) {
                         />
                     </TableCell>
                     <TableCell align='right' sx={{borderBottom: 'none'}}>
-                        <Button variant='contained' endIcon={<Add/>}>
+                        <Button variant='contained' endIcon={<Add/>} onClick={handleOpen}>
                             New
                         </Button>
                     </TableCell>
@@ -201,17 +218,160 @@ function EnhancedTableToolbar(props) {
     );
 }
 
+function CreateUserForm({handleClose, open}) {
+    const [firstname, setFirstname] = useState('')
+    const [lastname, setLastname] = useState('')
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const [isDev, setIsDev] = useState(false)
+
+    const userViewModel = new UserViewModel()
+
+    const handleFirstNameChange = (event) => {
+        setFirstname(event.target.value)
+    }
+
+    const handleLastNameChange = (event) => {
+        setLastname(event.target.value)
+    }
+
+    const handlePasswordChange = (event) => {
+        setPassword(event.target.value)
+    }
+
+    const handleEmailChange = (event) => {
+        setEmail(event.target.value)
+    }
+
+    const handleIsDevChange = (event) => {
+        setIsDev(event.target.value)
+    }
+
+    const handleSubmit = () => {
+        userViewModel.createUser(
+            firstname,
+            lastname,
+            email,
+            password,
+            isDev
+        ).then(() => {
+            setFirstname('')
+            setLastname('')
+            setEmail('')
+            setPassword('')
+            setIsDev(false)
+        })
+            .catch((error) => {
+                alert(error.message)
+            })
+    }
+
+    return (
+        <Dialog open={open} onClose={handleClose}>
+            <DialogTitle>New User</DialogTitle>
+            <DialogContent>
+                <div style={{maxWidth: '463px'}}>
+                    <TextField
+                        margin="normal"
+                        sx={{marginRight: '10px'}}
+                        required
+                        id="firstname"
+                        label="firstname"
+                        name="firstname"
+                        onChange={handleFirstNameChange}
+                        autoFocus
+                        value={firstname}
+                    />
+                    <TextField
+                        margin="normal"
+                        required
+                        id="lastname"
+                        label="lastname"
+                        name="lastname"
+                        onChange={handleLastNameChange}
+                        value={lastname}
+                    />
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        id="email"
+                        label="Email Address"
+                        name="email"
+                        autoComplete="email"
+                        onChange={handleEmailChange}
+                        value={email}
+                    />
+                    <TextField
+                        margin="normal"
+                        required
+                        fullWidth
+                        name="password"
+                        label="Password"
+                        type="password"
+                        id="password"
+                        autoComplete="current-password"
+                        onChange={handlePasswordChange}
+                        value={password}
+                    />
+                    <RadioGroup value={String(isDev)} onChange={handleIsDevChange}>
+                        <FormControlLabel
+                            value="true"
+                            control={<Radio/>}
+                            label="Developer"
+                        />
+                        <FormControlLabel
+                            value="false"
+                            control={<Radio/>}
+                            label="Professor"
+                        />
+                    </RadioGroup>
+                </div>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleClose}>Cancel</Button>
+                <Button color="primary" onClick={handleSubmit}>Create</Button>
+            </DialogActions>
+        </Dialog>
+    )
+}
+
 EnhancedTableToolbar.propTypes = {
     numSelected: PropTypes.number.isRequired,
 };
 
 export default function Database() {
-    const [order, setOrder] = React.useState('asc');
-    const [orderBy, setOrderBy] = React.useState('Firstname');
-    const [selected, setSelected] = React.useState([]);
-    const [page, setPage] = React.useState(0);
-    const [dense, setDense] = React.useState(false);
-    const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [order, setOrder] = useState('asc');
+    const [orderBy, setOrderBy] = useState('Firstname');
+    const [selected, setSelected] = useState([]);
+    const [page, setPage] = useState(0);
+    const [dense, setDense] = useState(false);
+    const [rowsPerPage, setRowsPerPage] = useState(5);
+
+    // all the rows containing the fetched data
+    const [rows, setRows] = useState([]);
+
+    /*
+    const rows = [
+        createData('0', 'Josh', 'Smith', 'test@test.com', 'dev'),
+        createData('1', 'Edmond', 'Gilliger', 'test@test.com', 'dev'),
+        createData('2', 'Victoire', 'Jordan', 'test@test.com', 'prof'),
+        createData('3', 'Emma', 'Gerber', 'test@test.com', 'prof'),
+    ];
+    */
+
+    useEffect(() => {
+        onValue(ref(db, 'Users/'), (snapshot) => {
+            const users = []
+            snapshot.forEach(e => {
+                const user = e.val().user
+                users.push(createData(user.uid, user.firstname, user.lastname, user.email, user.isDev))
+            })
+            setRows(users)
+        })
+    }, [])
+
+
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -273,7 +433,7 @@ export default function Database() {
                 page * rowsPerPage,
                 page * rowsPerPage + rowsPerPage,
             ),
-        [order, orderBy, page, rowsPerPage],
+        [order, orderBy, page, rowsPerPage, rows],
     );
 
     const chipTheme = createTheme({
@@ -338,8 +498,8 @@ export default function Database() {
                                             <TableCell align="right">
                                                 <ThemeProvider theme={chipTheme}>
                                                     <Chip
-                                                        label={row.Privilege}
-                                                        color={row.Privilege === 'dev' ? 'primary' : 'secondary'}/>
+                                                        label={row.Privilege ? 'Dev' : 'Prof'}
+                                                        color={row.Privilege ? 'primary' : 'secondary'}/>
                                                 </ThemeProvider>
                                             </TableCell>
                                             <TableCell align="right"><EditOutlined/></TableCell>
@@ -374,5 +534,5 @@ export default function Database() {
                 />
             </Box>
         </div>
-    );
+    )
 }
