@@ -21,23 +21,16 @@ import Switch from '@mui/material/Switch';
 import DeleteIcon from '@mui/icons-material/Delete';
 import {visuallyHidden} from '@mui/utils';
 import {Add, EditOutlined} from "@mui/icons-material";
-import {
-    Button,
-    Chip,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Radio,
-    RadioGroup,
-    TextField
-} from "@mui/material";
+import {Button, Chip, Tab, Tabs, TextField} from "@mui/material";
 import {colors} from "SRC/theme/theme.jsx";
-import UserViewModel from "SRC/viewmodels/UserViewModel.jsx";
 import {onValue, ref} from "firebase/database";
 import {db} from "SRC/firebaseConfig.js";
+import UpdateUserForm from 'SRC/components/DatabaseComponents/UpdateUserForm'
+import CreateUserForm from 'SRC/components/DatabaseComponents/CreateUserForm'
+import DBTabs from "SRC/components/DatabaseComponents/DBTabs.jsx";
+import UserTableToolBar from "SRC/components/DatabaseComponents/UserTableToolBar.jsx";
 
-function createData(UID, Firstname, Lastname, Email, Privilege) {
+function createUserData(UID, Firstname, Lastname, Email, Privilege) {
     return {
         UID,
         Firstname,
@@ -148,278 +141,6 @@ EnhancedTableHead.propTypes = {
     rowCount: PropTypes.number.isRequired,
 };
 
-function EnhancedTableToolbar(props) {
-    const {numSelected} = props;
-    const [open, setOpen] = useState(false);
-
-    const handleOpen = () => {
-        setOpen(true);
-    };
-
-    const handleClose = () => {
-        setOpen(false);
-    };
-
-    return (
-        <Toolbar
-            sx={{
-                pl: {sm: 2},
-                pr: {xs: 1, sm: 1},
-                ...(numSelected > 0 && {
-                    bgcolor: (theme) =>
-                        alpha(theme.palette.primary.main, theme.palette.action.activatedOpacity),
-                }),
-            }}
-        >
-            {/* This div is just the diablog (popup) that shows the form when we press the + button */}
-            <CreateUserForm open={open} handleClose={handleClose}/>
-
-            {numSelected > 0 ? (
-                <Typography
-                    sx={{flex: '1 1 100%'}}
-                    color="inherit"
-                    variant="subtitle1"
-                    component="div"
-                >
-                    {numSelected} selected
-                </Typography>
-            ) : (
-                <TableRow sx={{width: '100%'}}>
-                    <TableCell sx={{width: '100%', borderBottom: 'none', padding: 0}}>
-                        <TextField
-                            size='small'
-                            margin="normal"
-                            label="Search"
-                            name="Search"
-                        />
-                    </TableCell>
-                    <TableCell align='right' sx={{borderBottom: 'none'}}>
-                        <Button variant='contained' endIcon={<Add/>} onClick={handleOpen}>
-                            New
-                        </Button>
-                    </TableCell>
-                </TableRow>
-            )}
-
-            {numSelected > 0 &&
-                <Tooltip title="Delete">
-                    <IconButton>
-                        <DeleteIcon/>
-                    </IconButton>
-                </Tooltip>
-            }
-        </Toolbar>
-    );
-}
-
-function CreateUserForm({handleClose, open}) {
-    const [firstname, setFirstname] = useState('')
-    const [lastname, setLastname] = useState('')
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [isDev, setIsDev] = useState(false)
-
-    const userViewModel = new UserViewModel()
-
-    const handleFirstNameChange = (event) => {
-        setFirstname(event.target.value)
-    }
-
-    const handleLastNameChange = (event) => {
-        setLastname(event.target.value)
-    }
-
-    const handlePasswordChange = (event) => {
-        setPassword(event.target.value)
-    }
-
-    const handleEmailChange = (event) => {
-        setEmail(event.target.value)
-    }
-
-    const handleIsDevChange = (event) => {
-        setIsDev(event.target.value)
-    }
-
-    const handleSubmit = () => {
-        userViewModel.createUser(
-            firstname,
-            lastname,
-            email,
-            password,
-            isDev
-        ).then(() => {
-            setFirstname('')
-            setLastname('')
-            setEmail('')
-            setPassword('')
-            setIsDev(false)
-            handleClose()
-        })
-            .catch((error) => {
-                alert(error.message)
-            })
-    }
-
-    return (
-        <Dialog open={open} onClose={handleClose}>
-            <DialogTitle>New User</DialogTitle>
-            <DialogContent>
-                <div style={{maxWidth: '463px'}}>
-                    <TextField
-                        margin="normal"
-                        sx={{marginRight: '10px'}}
-                        required
-                        id="firstname"
-                        label="firstname"
-                        name="firstname"
-                        onChange={handleFirstNameChange}
-                        autoFocus
-                        value={firstname}
-                    />
-                    <TextField
-                        margin="normal"
-                        required
-                        id="lastname"
-                        label="lastname"
-                        name="lastname"
-                        onChange={handleLastNameChange}
-                        value={lastname}
-                    />
-                    <TextField
-                        margin="normal"
-                        required
-                        fullWidth
-                        id="email"
-                        label="Email Address"
-                        name="email"
-                        autoComplete="email"
-                        onChange={handleEmailChange}
-                        value={email}
-                    />
-                    <TextField
-                        margin="normal"
-                        required
-                        fullWidth
-                        name="password"
-                        label="Password"
-                        type="password"
-                        id="password"
-                        autoComplete="current-password"
-                        onChange={handlePasswordChange}
-                        value={password}
-                    />
-                    <RadioGroup value={String(isDev)} onChange={handleIsDevChange}>
-                        <FormControlLabel
-                            value="true"
-                            control={<Radio/>}
-                            label="Developer"
-                        />
-                        <FormControlLabel
-                            value="false"
-                            control={<Radio/>}
-                            label="Professor"
-                        />
-                    </RadioGroup>
-                </div>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={handleClose}>Cancel</Button>
-                <Button color="primary" onClick={handleSubmit}>Create</Button>
-            </DialogActions>
-        </Dialog>
-    )
-}
-
-function UpdateUserForm({handleClose, open, row}) {
-    const [firstname, setFirstname] = useState(row.Firstname)
-    const [lastname, setLastname] = useState(row.Lastname)
-    const [isDev, setIsDev] = useState(row.Privilege)
-
-    useEffect(() => {
-        setFirstname(row.Firstname)
-        setLastname(row.Lastname)
-        setIsDev(row.Privilege)
-    }, [row])
-
-    const userViewModel = new UserViewModel()
-
-    const handleFirstNameChange = (event) => {
-        setFirstname(event.target.value)
-    }
-
-    const handleLastNameChange = (event) => {
-        setLastname(event.target.value)
-    }
-
-    const handleIsDevChange = (event) => {
-        setIsDev(event.target.value)
-    }
-
-    const handleSubmit = () => {
-        userViewModel.updateUser(row.UID, firstname, lastname, isDev)
-            .then(() => {
-                setFirstname('')
-                setLastname('')
-                setIsDev(false)
-                handleClose()
-            })
-            .catch((error) => {
-                alert(error)
-            })
-    }
-
-    return (
-        <Dialog open={open} onClose={handleClose}>
-            <DialogTitle>Update User</DialogTitle>
-            <DialogContent>
-                <div style={{maxWidth: '463px'}}>
-                    <TextField
-                        margin="normal"
-                        sx={{marginRight: '10px'}}
-                        required
-                        id="firstname"
-                        label="Firstname"
-                        name="firstname"
-                        onChange={handleFirstNameChange}
-                        autoFocus
-                        value={firstname}
-                    />
-                    <TextField
-                        margin="normal"
-                        required
-                        id="lastname"
-                        label="Lastname"
-                        name="lastname"
-                        onChange={handleLastNameChange}
-                        value={lastname}
-                    />
-                    <RadioGroup value={String(isDev)} onChange={handleIsDevChange}>
-                        <FormControlLabel
-                            value="true"
-                            control={<Radio/>}
-                            label="Developer"
-                        />
-                        <FormControlLabel
-                            value="false"
-                            control={<Radio/>}
-                            label="Professor"
-                        />
-                    </RadioGroup>
-                </div>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={handleClose}>Cancel</Button>
-                <Button color="primary" onClick={handleSubmit}>Save</Button>
-            </DialogActions>
-        </Dialog>
-    )
-}
-
-EnhancedTableToolbar.propTypes = {
-    numSelected: PropTypes.number.isRequired,
-};
-
 export default function Database() {
     const [order, setOrder] = useState('asc');
     const [orderBy, setOrderBy] = useState('Firstname');
@@ -428,7 +149,8 @@ export default function Database() {
     const [dense, setDense] = useState(false);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [updateOpen, setUpdateOpen] = useState(false)
-    const [editRow, setEditRow] = useState(createData('', '', '', '', ''))
+    const [editRow, setEditRow] = useState(createUserData('', '', '', '', ''))
+    const [tab, setTab] = useState(0);
 
     const handleUpdateOpen = () => {
         setUpdateOpen(true)
@@ -439,7 +161,7 @@ export default function Database() {
     }
 
     const handleEdit = (row) => {
-        setEditRow(createData(row.UID, row.Firstname, row.Lastname, row.Email, row.Privilege))
+        setEditRow(createUserData(row.UID, row.Firstname, row.Lastname, row.Email, row.Privilege))
         handleUpdateOpen()
     }
 
@@ -452,7 +174,7 @@ export default function Database() {
             const users = []
             snapshot.forEach(e => {
                 const user = e.val().user
-                users.push(createData(user.uid, user.firstname, user.lastname, user.email, user.isDev))
+                users.push(createUserData(user.uid, user.firstname, user.lastname, user.email, user.isDev))
             })
             setRows(users)
         })
@@ -544,12 +266,14 @@ export default function Database() {
             maxWidth: '900px',
             margin: '50px auto',
         }}>
-            <h3>Work in progress!</h3>
+            <DBTabs state={tab} setState={setTab}/>
             {/*update dialog*/}
             <UpdateUserForm handleClose={handleUpdateClose} open={updateOpen} row={editRow}/>
             <Box sx={{width: '100%'}}>
                 <Paper sx={{width: '100%', mb: 2}}>
-                    <EnhancedTableToolbar numSelected={selected.length}/>
+                    {tab === 0 &&
+                        <UserTableToolBar numSelected={selected.length}/>
+                    }
                     <TableContainer>
                         <Table
                             sx={{minWidth: 750}}
