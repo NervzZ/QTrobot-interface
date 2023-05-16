@@ -82,25 +82,21 @@ function stableSort(array, comparator) {
 const headCells = [
     {
         id: 'Firstname',
-        numeric: false,
         disablePadding: false,
         label: 'Firstname',
     },
     {
         id: 'Lastname',
-        numeric: true,
         disablePadding: false,
         label: 'Lastname',
     },
     {
         id: 'Email',
-        numeric: true,
         disablePadding: false,
         label: 'Email',
     },
     {
         id: 'Privilege',
-        numeric: true,
         disablePadding: false,
         label: 'Privilege',
     }
@@ -205,15 +201,13 @@ function EnhancedTableToolbar(props) {
                 </TableRow>
             )}
 
-            {numSelected > 0 ? (
+            {numSelected > 0 &&
                 <Tooltip title="Delete">
                     <IconButton>
                         <DeleteIcon/>
                     </IconButton>
                 </Tooltip>
-            ) : (
-                <></>
-            )}
+            }
         </Toolbar>
     );
 }
@@ -260,6 +254,7 @@ function CreateUserForm({handleClose, open}) {
             setEmail('')
             setPassword('')
             setIsDev(false)
+            handleClose()
         })
             .catch((error) => {
                 alert(error.message)
@@ -336,6 +331,91 @@ function CreateUserForm({handleClose, open}) {
     )
 }
 
+function UpdateUserForm({handleClose, open, row}) {
+    const [firstname, setFirstname] = useState(row.Firstname)
+    const [lastname, setLastname] = useState(row.Lastname)
+    const [isDev, setIsDev] = useState(row.Privilege)
+
+    useEffect(() => {
+        setFirstname(row.Firstname)
+        setLastname(row.Lastname)
+        setIsDev(row.Privilege)
+    }, [row])
+
+    const userViewModel = new UserViewModel()
+
+    const handleFirstNameChange = (event) => {
+        setFirstname(event.target.value)
+    }
+
+    const handleLastNameChange = (event) => {
+        setLastname(event.target.value)
+    }
+
+    const handleIsDevChange = (event) => {
+        setIsDev(event.target.value)
+    }
+
+    const handleSubmit = () => {
+        userViewModel.updateUser(row.UID, firstname, lastname, isDev)
+            .then(() => {
+                setFirstname('')
+                setLastname('')
+                setIsDev(false)
+                handleClose()
+            })
+            .catch((error) => {
+                alert(error)
+            })
+    }
+
+    return (
+        <Dialog open={open} onClose={handleClose}>
+            <DialogTitle>Update User</DialogTitle>
+            <DialogContent>
+                <div style={{maxWidth: '463px'}}>
+                    <TextField
+                        margin="normal"
+                        sx={{marginRight: '10px'}}
+                        required
+                        id="firstname"
+                        label="Firstname"
+                        name="firstname"
+                        onChange={handleFirstNameChange}
+                        autoFocus
+                        value={firstname}
+                    />
+                    <TextField
+                        margin="normal"
+                        required
+                        id="lastname"
+                        label="Lastname"
+                        name="lastname"
+                        onChange={handleLastNameChange}
+                        value={lastname}
+                    />
+                    <RadioGroup value={String(isDev)} onChange={handleIsDevChange}>
+                        <FormControlLabel
+                            value="true"
+                            control={<Radio/>}
+                            label="Developer"
+                        />
+                        <FormControlLabel
+                            value="false"
+                            control={<Radio/>}
+                            label="Professor"
+                        />
+                    </RadioGroup>
+                </div>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={handleClose}>Cancel</Button>
+                <Button color="primary" onClick={handleSubmit}>Save</Button>
+            </DialogActions>
+        </Dialog>
+    )
+}
+
 EnhancedTableToolbar.propTypes = {
     numSelected: PropTypes.number.isRequired,
 };
@@ -347,19 +427,26 @@ export default function Database() {
     const [page, setPage] = useState(0);
     const [dense, setDense] = useState(false);
     const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [updateOpen, setUpdateOpen] = useState(false)
+    const [editRow, setEditRow] = useState(createData('', '', '', '', ''))
+
+    const handleUpdateOpen = () => {
+        setUpdateOpen(true)
+    }
+
+    const handleUpdateClose = () => {
+        setUpdateOpen(false)
+    }
+
+    const handleEdit = (row) => {
+        setEditRow(createData(row.UID, row.Firstname, row.Lastname, row.Email, row.Privilege))
+        handleUpdateOpen()
+    }
 
     // all the rows containing the fetched data
     const [rows, setRows] = useState([]);
 
-    /*
-    const rows = [
-        createData('0', 'Josh', 'Smith', 'test@test.com', 'dev'),
-        createData('1', 'Edmond', 'Gilliger', 'test@test.com', 'dev'),
-        createData('2', 'Victoire', 'Jordan', 'test@test.com', 'prof'),
-        createData('3', 'Emma', 'Gerber', 'test@test.com', 'prof'),
-    ];
-    */
-
+    // realtime update of the table content through onValue
     useEffect(() => {
         onValue(ref(db, 'Users/'), (snapshot) => {
             const users = []
@@ -370,7 +457,6 @@ export default function Database() {
             setRows(users)
         })
     }, [])
-
 
 
     const handleRequestSort = (event, property) => {
@@ -388,6 +474,7 @@ export default function Database() {
         setSelected([]);
     };
 
+    //row select handler
     const handleClick = (event, name) => {
         const selectedIndex = selected.indexOf(name);
         let newSelected = [];
@@ -405,7 +492,7 @@ export default function Database() {
             );
         }
 
-        setSelected(newSelected);
+        setSelected(newSelected)
     };
 
     const handleChangePage = (event, newPage) => {
@@ -436,6 +523,11 @@ export default function Database() {
         [order, orderBy, page, rowsPerPage, rows],
     );
 
+    //clears selection if we click the edit button
+    useEffect(() => {
+        setSelected([])
+    }, [editRow])
+
     const chipTheme = createTheme({
         palette: {
             primary: {
@@ -453,6 +545,8 @@ export default function Database() {
             margin: '50px auto',
         }}>
             <h3>Work in progress!</h3>
+            {/*update dialog*/}
+            <UpdateUserForm handleClose={handleUpdateClose} open={updateOpen} row={editRow}/>
             <Box sx={{width: '100%'}}>
                 <Paper sx={{width: '100%', mb: 2}}>
                     <EnhancedTableToolbar numSelected={selected.length}/>
@@ -493,16 +587,23 @@ export default function Database() {
                                             >
                                                 {row.Firstname}
                                             </TableCell>
-                                            <TableCell align="right">{row.Lastname}</TableCell>
-                                            <TableCell align="right">{row.Email}</TableCell>
-                                            <TableCell align="right">
+                                            <TableCell>{row.Lastname}</TableCell>
+                                            <TableCell>{row.Email}</TableCell>
+                                            <TableCell>
                                                 <ThemeProvider theme={chipTheme}>
                                                     <Chip
                                                         label={row.Privilege ? 'Dev' : 'Prof'}
                                                         color={row.Privilege ? 'primary' : 'secondary'}/>
                                                 </ThemeProvider>
                                             </TableCell>
-                                            <TableCell align="right"><EditOutlined/></TableCell>
+                                            <TableCell align="right">
+                                                <IconButton onClick={() => {
+                                                    handleEdit(row)
+                                                    setSelected([]);
+                                                }}>
+                                                    <EditOutlined/>
+                                                </IconButton>
+                                            </TableCell>
                                         </TableRow>
                                     );
                                 })}
