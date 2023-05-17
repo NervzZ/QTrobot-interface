@@ -1,4 +1,4 @@
-import {child, get, push, ref, set} from 'firebase/database';
+import {child, get, push, ref, set, update} from 'firebase/database';
 import {db} from 'SRC/firebaseConfig'
 import Class from 'SRC/models/Class'
 
@@ -24,6 +24,16 @@ class ClassViewModel {
                     })
                 }
             })
+    }
+
+    deleteClasses(ids) {
+        const updates = {};
+
+        ids.forEach((id) => {
+            updates['Classes/' + id] = null;
+        })
+
+        return update(ref(db), updates)
     }
 }
 

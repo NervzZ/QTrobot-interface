@@ -13,29 +13,43 @@ import DeleteIcon from "@mui/icons-material/Delete.js";
 import PropTypes from "prop-types";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
+import ClassViewModel from "SRC/viewmodels/ClassViewModel.jsx";
 
 ClassTableToolBar.propTypes = {
-    numSelected: PropTypes.number.isRequired,
+    selected: PropTypes.array.isRequired,
+    setSelected: PropTypes.func.isRequired
 };
 
 export default function ClassTableToolBar(props) {
-    const {numSelected} = props;
+    const {selected, setSelected} = props;
+
     const [open, setOpen] = useState(false);
+    const classViewModel = new ClassViewModel()
 
     const handleOpen = () => {
         setOpen(true);
-    };
+    }
 
     const handleClose = () => {
         setOpen(false);
-    };
+    }
+
+    const deleteHandler = () => {
+        classViewModel.deleteClasses(selected)
+            .then(() => {
+                setSelected([])
+            })
+            .catch((error) => {
+                alert(error)
+            })
+    }
 
     return (
         <Toolbar
             sx={{
                 pl: {sm: 2},
                 pr: {xs: 1, sm: 1},
-                ...(numSelected > 0 && {
+                ...(selected.length > 0 && {
                     bgcolor: (theme) =>
                         alpha(theme.palette.primary.main, theme.palette.action.activatedOpacity),
                 }),
@@ -44,14 +58,14 @@ export default function ClassTableToolBar(props) {
             {/* This div is just the diablog (popup) that shows the form when we press the + button */}
             <CreateClassForm open={open} handleClose={handleClose}/>
 
-            {numSelected > 0 ? (
+            {selected.length > 0 ? (
                 <Typography
                     sx={{flex: '1 1 100%'}}
                     color="inherit"
                     variant="subtitle1"
                     component="div"
                 >
-                    {numSelected} selected
+                    {selected.length} selected
                 </Typography>
             ) : (
                 <Table>
@@ -75,9 +89,9 @@ export default function ClassTableToolBar(props) {
                 </Table>
             )}
 
-            {numSelected > 0 &&
+            {selected.length > 0 &&
                 <Tooltip title="Delete">
-                    <IconButton>
+                    <IconButton onClick={deleteHandler}>
                         <DeleteIcon/>
                     </IconButton>
                 </Tooltip>

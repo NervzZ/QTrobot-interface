@@ -79,21 +79,25 @@ function stableSort(array, comparator) {
 const UserHeadCells = [
     {
         id: 'Firstname',
+        numeric: false,
         disablePadding: false,
         label: 'Firstname',
     },
     {
         id: 'Lastname',
+        numeric: false,
         disablePadding: false,
         label: 'Lastname',
     },
     {
         id: 'Email',
+        numeric: false,
         disablePadding: false,
         label: 'Email',
     },
     {
         id: 'Privilege',
+        numeric: false,
         disablePadding: false,
         label: 'Privilege',
     }
@@ -150,7 +154,7 @@ function EnhancedTableHead(props) {
                         </TableSortLabel>
                     </TableCell>
                 ))}
-                {/*blanks*/}
+                {/*blank to have a column for the edit button*/}
                 <TableCell/>
             </TableRow>
         </TableHead>
@@ -244,7 +248,8 @@ export default function Database() {
             default:
                 break
         }
-        //clears selection if we click the edit button
+        //clears selection, page selection
+        setPage(0)
         setSelected([])
     }, [tab, editRow])
 
@@ -283,15 +288,15 @@ export default function Database() {
         }
 
         setSelected(newSelected)
-    };
+    }
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
     const handleChangeRowsPerPage = (event) => {
+        setPage(0)
         setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
     };
 
     const handleChangeDense = (event) => {
@@ -334,7 +339,7 @@ export default function Database() {
             <Box sx={{width: '100%'}}>
                 <Paper sx={{width: '100%', mb: 2}}>
                     {tab === 0 ?
-                        (<UserTableToolBar/>) : (<ClassTableToolBar numSelected={selected.length}/>)}
+                        (<UserTableToolBar/>) : (<ClassTableToolBar selected={selected} setSelected={setSelected}/>)}
                     <TableContainer>
                         <Table
                             sx={{minWidth: 750}}
@@ -352,7 +357,7 @@ export default function Database() {
                             />
                             <TableBody>
                                 {visibleRows.map((row, index) => {
-                                    var isItemSelected
+                                    let isItemSelected = false
                                     const labelId = `enhanced-table-checkbox-${index}`
 
                                     switch (tab) {
