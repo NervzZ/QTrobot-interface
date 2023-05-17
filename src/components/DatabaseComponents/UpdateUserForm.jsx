@@ -7,7 +7,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 export default function UpdateUserForm({handleClose, open, row}) {
     const [firstname, setFirstname] = useState(row.Firstname)
     const [lastname, setLastname] = useState(row.Lastname)
-    const [isDev, setIsDev] = useState(row.Privilege)
+    const [isDev, setIsDev] = useState(false)
 
     useEffect(() => {
         setFirstname(row.Firstname)
@@ -26,7 +26,7 @@ export default function UpdateUserForm({handleClose, open, row}) {
     }
 
     const handleIsDevChange = (event) => {
-        setIsDev(event.target.value)
+        setIsDev(event.target.value === 'true')
     }
 
     const handleSubmit = () => {

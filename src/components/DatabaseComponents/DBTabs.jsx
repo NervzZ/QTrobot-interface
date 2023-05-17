@@ -1,12 +1,11 @@
 import Box from "@mui/material/Box";
 import {Tab, Tabs} from "@mui/material";
-import * as React from "react";
-import {useEffect} from "react";
 
-export default function DBTabs({state, setState}) {
+export default function DBTabs({state, setState, setPage}) {
 
     const handleChange = (event, newValue) => {
         setState(newValue)
+        setPage(0)
     }
 
     return (

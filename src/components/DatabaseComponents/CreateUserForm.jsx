@@ -30,7 +30,7 @@ export default function CreateUserForm({handleClose, open}) {
     }
 
     const handleIsDevChange = (event) => {
-        setIsDev(event.target.value)
+        setIsDev(event.target.value === 'true')
     }
 
     const handleSubmit = () => {
@@ -85,7 +85,6 @@ export default function CreateUserForm({handleClose, open}) {
                         id="email"
                         label="Email Address"
                         name="email"
-                        autoComplete="email"
                         onChange={handleEmailChange}
                         value={email}
                     />
@@ -97,7 +96,6 @@ export default function CreateUserForm({handleClose, open}) {
                         label="Password"
                         type="password"
                         id="password"
-                        autoComplete="current-password"
                         onChange={handlePasswordChange}
                         value={password}
                     />
