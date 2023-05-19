@@ -37,10 +37,10 @@ function createUserData(UID, Firstname, Lastname, Email, Privilege) {
     };
 }
 
-function createClassData(cid, name) {
+function createClassData(cid, Name) {
     return {
         cid,
-        name
+        Name
     };
 }
 
@@ -106,6 +106,7 @@ const UserHeadCells = [
 const ClassHeadCells = [
     {
         id: 'Name',
+        numeric: false,
         disablePadding: false,
         label: 'Name',
     }
@@ -195,7 +196,7 @@ EnhancedTableHead.propTypes = {
 
 export default function Database() {
     const [order, setOrder] = useState('asc');
-    const [orderBy, setOrderBy] = useState('Firstname');
+    const [orderBy, setOrderBy] = useState('');
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
     const [dense, setDense] = useState(false);
@@ -219,6 +220,19 @@ export default function Database() {
 
     // all the rows containing the fetched data
     const [rows, setRows] = useState([]);
+
+    useEffect(() => {
+        switch (tab) {
+            case 0:
+                setOrderBy('Firstname')
+                break
+            case 1:
+                break
+            case 2:
+                setOrderBy('Name')
+                break
+        }
+    }, [tab])
 
     // realtime update of the table content through firebase "onValue" event subscription and chosen tab
     useEffect(() => {
@@ -255,9 +269,10 @@ export default function Database() {
 
 
     const handleRequestSort = (event, property) => {
-        const isAsc = orderBy === property && order === 'asc';
-        setOrder(isAsc ? 'desc' : 'asc');
-        setOrderBy(property);
+        const isAsc = orderBy === property && order === 'asc'
+        setOrder(isAsc ? 'desc' : 'asc')
+        setOrderBy(property)
+        console.log(property)
     };
 
     const handleSelectAllClick = (event) => {
@@ -423,7 +438,7 @@ export default function Database() {
                                                         id={labelId}
                                                         scope="row"
                                                     >
-                                                        {row.name}
+                                                        {row.Name}
                                                     </TableCell>
                                                     <TableCell align="right">
                                                         <IconButton onClick={() => {

@@ -3,10 +3,10 @@ import {Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField} fr
 import ClassViewModel from "SRC/viewmodels/ClassViewModel.jsx";
 
 export default function UpdateClassForm({handleClose, open, row}) {
-    const [name, setName] = useState(row.name)
+    const [name, setName] = useState(row.Name)
 
     useEffect(() => {
-        setName(row.name)
+        setName(row.Name)
     }, [row])
 
     const classViewModel = new ClassViewModel()
