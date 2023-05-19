@@ -87,9 +87,9 @@ function NavBar() {
 
     return (
         <BottomNavigation value={value} onChange={handleChange}>
-            <BottomNavigationAction label="Dev" showLabel={true} icon={<Home/>}/>
-            <BottomNavigationAction label="Database" showLabel={true} icon={<PersonAdd/>}/>
-            <BottomNavigationAction label="Notifications" showLabel={true} icon={<Visibility/>}/>
+            <BottomNavigationAction label={strings.devPageName} showLabel={true} icon={<Home/>}/>
+            <BottomNavigationAction label={strings.databasePageName} showLabel={true} icon={<PersonAdd/>}/>
+            <BottomNavigationAction label={strings.visualisationPageName} showLabel={true} icon={<Visibility/>}/>
         </BottomNavigation>
     );
 }

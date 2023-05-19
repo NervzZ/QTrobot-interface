@@ -1,3 +1,6 @@
 {
-  "appVersion": "QTrobot interface v0.0.2"
+  "appVersion": "QTrobot interface v0.1.1",
+  "databasePageName": "Database",
+  "devPageName": "Dev",
+  "visualisationPageName": "Visualisation"
 }

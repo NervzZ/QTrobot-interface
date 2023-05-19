@@ -9,7 +9,8 @@ class UserViewModel {
         return createUserWithEmailAndPassword(auth, email, password)
             .then((userCredential) => {
                 const user = new User(userCredential.user.uid, firstname, lastname, email, isDev)
-                return set(ref(db, 'Users/' + user.uid), {user})
+                console.log(typeof user.isDev)
+                return set(ref(db, 'Users/' + user.uid), {...user})
             })
     }
 
@@ -17,9 +18,10 @@ class UserViewModel {
         return get(child(ref(db), 'Users/' + uid))
             .then((snapshot) => {
                 if (snapshot.exists()) {
-                    const dbuser = snapshot.val().user
+                    const dbuser = snapshot.val()
                     const user = new User(uid, firstname, lastname, dbuser.email, isDev)
-                    return set(ref(db, 'Users/' + uid), {user})
+                    console.log(typeof user.isDev)
+                    return set(ref(db, 'Users/' + uid), {...user})
                 } else {
                     return new Promise((resolve, reject) => {
                         reject(new Error('Could not find that user in the database.'))

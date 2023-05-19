@@ -1,7 +1,7 @@
 import * as React from 'react';
 import {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
-import {alpha, createTheme, ThemeProvider} from '@mui/material/styles';
+import {createTheme, ThemeProvider} from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -11,39 +11,36 @@ import TableHead from '@mui/material/TableHead';
 import TablePagination from '@mui/material/TablePagination';
 import TableRow from '@mui/material/TableRow';
 import TableSortLabel from '@mui/material/TableSortLabel';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
-import DeleteIcon from '@mui/icons-material/Delete';
 import {visuallyHidden} from '@mui/utils';
-import {Add, EditOutlined} from "@mui/icons-material";
-import {
-    Button,
-    Chip,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Radio,
-    RadioGroup,
-    TextField
-} from "@mui/material";
+import {EditOutlined} from "@mui/icons-material";
+import {Chip} from "@mui/material";
 import {colors} from "SRC/theme/theme.jsx";
-import UserViewModel from "SRC/viewmodels/UserViewModel.jsx";
 import {onValue, ref} from "firebase/database";
 import {db} from "SRC/firebaseConfig.js";
+import UpdateUserForm from 'SRC/components/DatabaseComponents/UpdateUserForm'
+import DBTabs from "SRC/components/DatabaseComponents/DBTabs.jsx";
+import UserTableToolBar from "SRC/components/DatabaseComponents/UserTableToolBar.jsx";
+import ClassTableToolBar from "SRC/components/DatabaseComponents/ClassTableToolBar.jsx";
+import UpdateClassForm from "SRC/components/DatabaseComponents/UpdateClassForm.jsx";
 
-function createData(UID, Firstname, Lastname, Email, Privilege) {
+function createUserData(UID, Firstname, Lastname, Email, Privilege) {
     return {
         UID,
         Firstname,
         Lastname,
         Email,
         Privilege
+    };
+}
+
+function createClassData(cid, Name) {
+    return {
+        cid,
+        Name
     };
 }
 
@@ -79,40 +76,65 @@ function stableSort(array, comparator) {
     return stabilizedThis.map((el) => el[0]);
 }
 
-const headCells = [
+const UserHeadCells = [
     {
         id: 'Firstname',
+        numeric: false,
         disablePadding: false,
         label: 'Firstname',
     },
     {
         id: 'Lastname',
+        numeric: false,
         disablePadding: false,
         label: 'Lastname',
     },
     {
         id: 'Email',
+        numeric: false,
         disablePadding: false,
         label: 'Email',
     },
     {
         id: 'Privilege',
+        numeric: false,
         disablePadding: false,
         label: 'Privilege',
     }
 ];
 
+const ClassHeadCells = [
+    {
+        id: 'Name',
+        numeric: false,
+        disablePadding: false,
+        label: 'Name',
+    }
+];
+
 function EnhancedTableHead(props) {
-    const {onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort} =
+    const {onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort, tab} =
         props;
     const createSortHandler = (property) => (event) => {
         onRequestSort(event, property);
     };
 
+    var cells = UserHeadCells
+
+    switch (tab) {
+        case 0:
+            cells = UserHeadCells
+            break
+        case 1:
+            break
+        case 2:
+            cells = ClassHeadCells
+    }
+
     return (
         <TableHead>
             <TableRow>
-                {headCells.map((headCell) => (
+                {cells.map((headCell) => (
                     <TableCell
                         key={headCell.id}
                         align={headCell.numeric ? 'right' : 'left'}
@@ -133,10 +155,33 @@ function EnhancedTableHead(props) {
                         </TableSortLabel>
                     </TableCell>
                 ))}
-                <TableCell>{/* empty */}</TableCell>
+                {/*blank to have a column for the edit button*/}
+                <TableCell/>
             </TableRow>
         </TableHead>
     );
+}
+
+function RenderUpdateDialog(props) {
+    const {tab, open, handleClose, row} = props;
+
+    switch (tab) {
+        case 0:
+            return <UpdateUserForm handleClose={handleClose} open={open} row={row}/>
+        case 1:
+            return <></>
+        case 2:
+            return <UpdateClassForm handleClose={handleClose} open={open} row={row}/>
+        default:
+            return <></>
+    }
+}
+
+RenderUpdateDialog.proTypes = {
+    tab: PropTypes.number.isRequired,
+    open: PropTypes.bool.isRequired,
+    handleClose: PropTypes.func.isRequired,
+    row: PropTypes.object.isRequired
 }
 
 EnhancedTableHead.propTypes = {
@@ -146,289 +191,19 @@ EnhancedTableHead.propTypes = {
     order: PropTypes.oneOf(['asc', 'desc']).isRequired,
     orderBy: PropTypes.string.isRequired,
     rowCount: PropTypes.number.isRequired,
-};
-
-function EnhancedTableToolbar(props) {
-    const {numSelected} = props;
-    const [open, setOpen] = useState(false);
-
-    const handleOpen = () => {
-        setOpen(true);
-    };
-
-    const handleClose = () => {
-        setOpen(false);
-    };
-
-    return (
-        <Toolbar
-            sx={{
-                pl: {sm: 2},
-                pr: {xs: 1, sm: 1},
-                ...(numSelected > 0 && {
-                    bgcolor: (theme) =>
-                        alpha(theme.palette.primary.main, theme.palette.action.activatedOpacity),
-                }),
-            }}
-        >
-            {/* This div is just the diablog (popup) that shows the form when we press the + button */}
-            <CreateUserForm open={open} handleClose={handleClose}/>
-
-            {numSelected > 0 ? (
-                <Typography
-                    sx={{flex: '1 1 100%'}}
-                    color="inherit"
-                    variant="subtitle1"
-                    component="div"
-                >
-                    {numSelected} selected
-                </Typography>
-            ) : (
-                <TableRow sx={{width: '100%'}}>
-                    <TableCell sx={{width: '100%', borderBottom: 'none', padding: 0}}>
-                        <TextField
-                            size='small'
-                            margin="normal"
-                            label="Search"
-                            name="Search"
-                        />
-                    </TableCell>
-                    <TableCell align='right' sx={{borderBottom: 'none'}}>
-                        <Button variant='contained' endIcon={<Add/>} onClick={handleOpen}>
-                            New
-                        </Button>
-                    </TableCell>
-                </TableRow>
-            )}
-
-            {numSelected > 0 &&
-                <Tooltip title="Delete">
-                    <IconButton>
-                        <DeleteIcon/>
-                    </IconButton>
-                </Tooltip>
-            }
-        </Toolbar>
-    );
-}
-
-function CreateUserForm({handleClose, open}) {
-    const [firstname, setFirstname] = useState('')
-    const [lastname, setLastname] = useState('')
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [isDev, setIsDev] = useState(false)
-
-    const userViewModel = new UserViewModel()
-
-    const handleFirstNameChange = (event) => {
-        setFirstname(event.target.value)
-    }
-
-    const handleLastNameChange = (event) => {
-        setLastname(event.target.value)
-    }
-
-    const handlePasswordChange = (event) => {
-        setPassword(event.target.value)
-    }
-
-    const handleEmailChange = (event) => {
-        setEmail(event.target.value)
-    }
-
-    const handleIsDevChange = (event) => {
-        setIsDev(event.target.value)
-    }
-
-    const handleSubmit = () => {
-        userViewModel.createUser(
-            firstname,
-            lastname,
-            email,
-            password,
-            isDev
-        ).then(() => {
-            setFirstname('')
-            setLastname('')
-            setEmail('')
-            setPassword('')
-            setIsDev(false)
-            handleClose()
-        })
-            .catch((error) => {
-                alert(error.message)
-            })
-    }
-
-    return (
-        <Dialog open={open} onClose={handleClose}>
-            <DialogTitle>New User</DialogTitle>
-            <DialogContent>
-                <div style={{maxWidth: '463px'}}>
-                    <TextField
-                        margin="normal"
-                        sx={{marginRight: '10px'}}
-                        required
-                        id="firstname"
-                        label="firstname"
-                        name="firstname"
-                        onChange={handleFirstNameChange}
-                        autoFocus
-                        value={firstname}
-                    />
-                    <TextField
-                        margin="normal"
-                        required
-                        id="lastname"
-                        label="lastname"
-                        name="lastname"
-                        onChange={handleLastNameChange}
-                        value={lastname}
-                    />
-                    <TextField
-                        margin="normal"
-                        required
-                        fullWidth
-                        id="email"
-                        label="Email Address"
-                        name="email"
-                        autoComplete="email"
-                        onChange={handleEmailChange}
-                        value={email}
-                    />
-                    <TextField
-                        margin="normal"
-                        required
-                        fullWidth
-                        name="password"
-                        label="Password"
-                        type="password"
-                        id="password"
-                        autoComplete="current-password"
-                        onChange={handlePasswordChange}
-                        value={password}
-                    />
-                    <RadioGroup value={String(isDev)} onChange={handleIsDevChange}>
-                        <FormControlLabel
-                            value="true"
-                            control={<Radio/>}
-                            label="Developer"
-                        />
-                        <FormControlLabel
-                            value="false"
-                            control={<Radio/>}
-                            label="Professor"
-                        />
-                    </RadioGroup>
-                </div>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={handleClose}>Cancel</Button>
-                <Button color="primary" onClick={handleSubmit}>Create</Button>
-            </DialogActions>
-        </Dialog>
-    )
-}
-
-function UpdateUserForm({handleClose, open, row}) {
-    const [firstname, setFirstname] = useState(row.Firstname)
-    const [lastname, setLastname] = useState(row.Lastname)
-    const [isDev, setIsDev] = useState(row.Privilege)
-
-    useEffect(() => {
-        setFirstname(row.Firstname)
-        setLastname(row.Lastname)
-        setIsDev(row.Privilege)
-    }, [row])
-
-    const userViewModel = new UserViewModel()
-
-    const handleFirstNameChange = (event) => {
-        setFirstname(event.target.value)
-    }
-
-    const handleLastNameChange = (event) => {
-        setLastname(event.target.value)
-    }
-
-    const handleIsDevChange = (event) => {
-        setIsDev(event.target.value)
-    }
-
-    const handleSubmit = () => {
-        userViewModel.updateUser(row.UID, firstname, lastname, isDev)
-            .then(() => {
-                setFirstname('')
-                setLastname('')
-                setIsDev(false)
-                handleClose()
-            })
-            .catch((error) => {
-                alert(error)
-            })
-    }
-
-    return (
-        <Dialog open={open} onClose={handleClose}>
-            <DialogTitle>Update User</DialogTitle>
-            <DialogContent>
-                <div style={{maxWidth: '463px'}}>
-                    <TextField
-                        margin="normal"
-                        sx={{marginRight: '10px'}}
-                        required
-                        id="firstname"
-                        label="Firstname"
-                        name="firstname"
-                        onChange={handleFirstNameChange}
-                        autoFocus
-                        value={firstname}
-                    />
-                    <TextField
-                        margin="normal"
-                        required
-                        id="lastname"
-                        label="Lastname"
-                        name="lastname"
-                        onChange={handleLastNameChange}
-                        value={lastname}
-                    />
-                    <RadioGroup value={String(isDev)} onChange={handleIsDevChange}>
-                        <FormControlLabel
-                            value="true"
-                            control={<Radio/>}
-                            label="Developer"
-                        />
-                        <FormControlLabel
-                            value="false"
-                            control={<Radio/>}
-                            label="Professor"
-                        />
-                    </RadioGroup>
-                </div>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={handleClose}>Cancel</Button>
-                <Button color="primary" onClick={handleSubmit}>Save</Button>
-            </DialogActions>
-        </Dialog>
-    )
-}
-
-EnhancedTableToolbar.propTypes = {
-    numSelected: PropTypes.number.isRequired,
+    tab: PropTypes.number.isRequired
 };
 
 export default function Database() {
     const [order, setOrder] = useState('asc');
-    const [orderBy, setOrderBy] = useState('Firstname');
+    const [orderBy, setOrderBy] = useState('');
     const [selected, setSelected] = useState([]);
     const [page, setPage] = useState(0);
     const [dense, setDense] = useState(false);
     const [rowsPerPage, setRowsPerPage] = useState(5);
     const [updateOpen, setUpdateOpen] = useState(false)
-    const [editRow, setEditRow] = useState(createData('', '', '', '', ''))
+    const [editRow, setEditRow] = useState(createUserData('', '', '', '', ''))
+    const [tab, setTab] = useState(0);
 
     const handleUpdateOpen = () => {
         setUpdateOpen(true)
@@ -439,30 +214,65 @@ export default function Database() {
     }
 
     const handleEdit = (row) => {
-        setEditRow(createData(row.UID, row.Firstname, row.Lastname, row.Email, row.Privilege))
+        setEditRow(row)
         handleUpdateOpen()
     }
 
     // all the rows containing the fetched data
     const [rows, setRows] = useState([]);
 
-    // realtime update of the table content through onValue
     useEffect(() => {
-        onValue(ref(db, 'Users/'), (snapshot) => {
-            const users = []
-            snapshot.forEach(e => {
-                const user = e.val().user
-                users.push(createData(user.uid, user.firstname, user.lastname, user.email, user.isDev))
-            })
-            setRows(users)
-        })
-    }, [])
+        switch (tab) {
+            case 0:
+                setOrderBy('Firstname')
+                break
+            case 1:
+                break
+            case 2:
+                setOrderBy('Name')
+                break
+        }
+    }, [tab])
+
+    // realtime update of the table content through firebase "onValue" event subscription and chosen tab
+    useEffect(() => {
+        switch (tab) {
+            case 0:
+                onValue(ref(db, 'Users/'), (snapshot) => {
+                    const users = []
+                    snapshot.forEach(usr => {
+                        const user = usr.val()
+                        users.push(createUserData(user.uid, user.firstname, user.lastname, user.email, user.isDev))
+                    })
+                    setRows(users)
+                })
+                break
+            case 1:
+                break
+            case 2:
+                onValue(ref(db, 'Classes/'), (snapshot) => {
+                    const classes = []
+                    snapshot.forEach(c => {
+                        const schoolClass = c.val()
+                        classes.push(createClassData(schoolClass.cid, schoolClass.name))
+                    })
+                    setRows(classes)
+                })
+                break
+            default:
+                break
+        }
+        //clears selection, page selection
+        setPage(0)
+        setSelected([])
+    }, [tab, editRow])
 
 
     const handleRequestSort = (event, property) => {
-        const isAsc = orderBy === property && order === 'asc';
-        setOrder(isAsc ? 'desc' : 'asc');
-        setOrderBy(property);
+        const isAsc = orderBy === property && order === 'asc'
+        setOrder(isAsc ? 'desc' : 'asc')
+        setOrderBy(property)
+        console.log(property)
     };
 
     const handleSelectAllClick = (event) => {
@@ -493,15 +303,15 @@ export default function Database() {
         }
 
         setSelected(newSelected)
-    };
+    }
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
     };
 
     const handleChangeRowsPerPage = (event) => {
+        setPage(0)
         setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
     };
 
     const handleChangeDense = (event) => {
@@ -523,11 +333,6 @@ export default function Database() {
         [order, orderBy, page, rowsPerPage, rows],
     );
 
-    //clears selection if we click the edit button
-    useEffect(() => {
-        setSelected([])
-    }, [editRow])
-
     const chipTheme = createTheme({
         palette: {
             primary: {
@@ -544,12 +349,12 @@ export default function Database() {
             maxWidth: '900px',
             margin: '50px auto',
         }}>
-            <h3>Work in progress!</h3>
-            {/*update dialog*/}
-            <UpdateUserForm handleClose={handleUpdateClose} open={updateOpen} row={editRow}/>
+            <DBTabs state={tab} setState={setTab} setPage={setPage}/>
+            <RenderUpdateDialog tab={tab} handleClose={handleUpdateClose} open={updateOpen} row={editRow}/>
             <Box sx={{width: '100%'}}>
                 <Paper sx={{width: '100%', mb: 2}}>
-                    <EnhancedTableToolbar numSelected={selected.length}/>
+                    {tab === 0 ?
+                        (<UserTableToolBar/>) : (<ClassTableToolBar selected={selected} setSelected={setSelected}/>)}
                     <TableContainer>
                         <Table
                             sx={{minWidth: 750}}
@@ -563,49 +368,91 @@ export default function Database() {
                                 onSelectAllClick={handleSelectAllClick}
                                 onRequestSort={handleRequestSort}
                                 rowCount={rows.length}
+                                tab={tab}
                             />
                             <TableBody>
                                 {visibleRows.map((row, index) => {
-                                    const isItemSelected = isSelected(row.UID);
-                                    const labelId = `enhanced-table-checkbox-${index}`;
+                                    let isItemSelected = false
+                                    const labelId = `enhanced-table-checkbox-${index}`
 
-                                    return (
-                                        <TableRow
-                                            hover
-                                            onClick={(event) => handleClick(event, row.UID)}
-                                            role="checkbox"
-                                            aria-checked={isItemSelected}
-                                            tabIndex={-1}
-                                            key={row.UID}
-                                            selected={isItemSelected}
-                                            sx={{cursor: 'pointer'}}
-                                        >
-                                            <TableCell
-                                                component="th"
-                                                id={labelId}
-                                                scope="row"
-                                            >
-                                                {row.Firstname}
-                                            </TableCell>
-                                            <TableCell>{row.Lastname}</TableCell>
-                                            <TableCell>{row.Email}</TableCell>
-                                            <TableCell>
-                                                <ThemeProvider theme={chipTheme}>
-                                                    <Chip
-                                                        label={row.Privilege ? 'Dev' : 'Prof'}
-                                                        color={row.Privilege ? 'primary' : 'secondary'}/>
-                                                </ThemeProvider>
-                                            </TableCell>
-                                            <TableCell align="right">
-                                                <IconButton onClick={() => {
-                                                    handleEdit(row)
-                                                    setSelected([]);
-                                                }}>
-                                                    <EditOutlined/>
-                                                </IconButton>
-                                            </TableCell>
-                                        </TableRow>
-                                    );
+                                    switch (tab) {
+                                        case 0:
+                                            //Users table
+                                            isItemSelected = isSelected(row.UID)
+                                            return (
+                                                <TableRow
+                                                    hover
+                                                    onClick={(event) => handleClick(event, row.UID)}
+                                                    role="checkbox"
+                                                    aria-checked={isItemSelected}
+                                                    tabIndex={-1}
+                                                    key={row.UID}
+                                                    selected={isItemSelected}
+                                                    sx={{cursor: 'pointer'}}
+                                                >
+                                                    <TableCell
+                                                        component="th"
+                                                        id={labelId}
+                                                        scope="row"
+                                                    >
+                                                        {row.Firstname}
+                                                    </TableCell>
+                                                    <TableCell>{row.Lastname}</TableCell>
+                                                    <TableCell>{row.Email}</TableCell>
+                                                    <TableCell>
+                                                        <ThemeProvider theme={chipTheme}>
+                                                            <Chip
+                                                                label={row.Privilege ? 'Dev' : 'Prof'}
+                                                                color={row.Privilege ? 'primary' : 'secondary'}/>
+                                                        </ThemeProvider>
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <IconButton onClick={() => {
+                                                            handleEdit(row)
+                                                            setSelected([]);
+                                                        }}>
+                                                            <EditOutlined/>
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
+                                        case 1:
+                                            //Children table
+                                            break
+                                        case 2:
+                                            //Classes table
+                                            isItemSelected = isSelected(row.cid)
+                                            return (
+                                                <TableRow
+                                                    hover
+                                                    onClick={(event) => handleClick(event, row.cid)}
+                                                    role="checkbox"
+                                                    aria-checked={isItemSelected}
+                                                    tabIndex={-1}
+                                                    key={row.cid}
+                                                    selected={isItemSelected}
+                                                    sx={{cursor: 'pointer'}}
+                                                >
+                                                    <TableCell
+                                                        component="th"
+                                                        id={labelId}
+                                                        scope="row"
+                                                    >
+                                                        {row.Name}
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <IconButton onClick={() => {
+                                                            handleEdit(row)
+                                                            setSelected([]);
+                                                        }}>
+                                                            <EditOutlined/>
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
+                                        default:
+                                            break
+                                    }
                                 })}
                                 {emptyRows > 0 && (
                                     <TableRow
