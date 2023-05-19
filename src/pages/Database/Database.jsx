@@ -25,7 +25,9 @@ import UpdateUserForm from 'SRC/components/DatabaseComponents/UpdateUserForm'
 import DBTabs from "SRC/components/DatabaseComponents/DBTabs.jsx";
 import UserTableToolBar from "SRC/components/DatabaseComponents/UserTableToolBar.jsx";
 import ClassTableToolBar from "SRC/components/DatabaseComponents/ClassTableToolBar.jsx";
+import ChildTableToolBar from "SRC/components/DatabaseComponents/ChildTableToolBar.jsx"
 import UpdateClassForm from "SRC/components/DatabaseComponents/UpdateClassForm.jsx";
+import UpdateChildForm from "SRC/components/DatabaseComponents/UpdateChildForm.jsx";
 
 function createUserData(UID, Firstname, Lastname, Email, Privilege) {
     return {
@@ -42,6 +44,16 @@ function createClassData(cid, Name) {
         cid,
         Name
     };
+}
+
+function createChildData(cid, Firstname, Lastname, Age, Class) {
+    return {
+        cid,
+        Firstname,
+        Lastname,
+        Age,
+        Class
+    }
 }
 
 function descendingComparator(a, b, orderBy) {
@@ -101,6 +113,33 @@ const UserHeadCells = [
         disablePadding: false,
         label: 'Privilege',
     }
+]
+
+const ChildHeadCells = [
+    {
+        id: 'Firstname',
+        numeric: false,
+        disablePadding: false,
+        label: 'Firstname',
+    },
+    {
+        id: 'Lastname',
+        numeric: false,
+        disablePadding: false,
+        label: 'Lastname',
+    },
+    {
+        id: 'Age',
+        numeric: true,
+        disablePadding: false,
+        label: 'Age',
+    },
+    {
+        id: 'Class',
+        numeric: false,
+        disablePadding: false,
+        label: 'Class',
+    }
 ];
 
 const ClassHeadCells = [
@@ -110,7 +149,7 @@ const ClassHeadCells = [
         disablePadding: false,
         label: 'Name',
     }
-];
+]
 
 function EnhancedTableHead(props) {
     const {onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort, tab} =
@@ -126,9 +165,11 @@ function EnhancedTableHead(props) {
             cells = UserHeadCells
             break
         case 1:
-            break
+            cells = ChildHeadCells
+            break;
         case 2:
             cells = ClassHeadCells
+            break;
     }
 
     return (
@@ -169,7 +210,7 @@ function RenderUpdateDialog(props) {
         case 0:
             return <UpdateUserForm handleClose={handleClose} open={open} row={row}/>
         case 1:
-            return <></>
+            return <UpdateChildForm handleClose={handleClose} open={open} row={row}/>
         case 2:
             return <UpdateClassForm handleClose={handleClose} open={open} row={row}/>
         default:
@@ -195,15 +236,17 @@ EnhancedTableHead.propTypes = {
 };
 
 export default function Database() {
-    const [order, setOrder] = useState('asc');
-    const [orderBy, setOrderBy] = useState('');
-    const [selected, setSelected] = useState([]);
-    const [page, setPage] = useState(0);
-    const [dense, setDense] = useState(false);
-    const [rowsPerPage, setRowsPerPage] = useState(5);
+    const [order, setOrder] = useState('asc')
+    const [orderBy, setOrderBy] = useState('')
+    const [selected, setSelected] = useState([])
+    const [page, setPage] = useState(0)
+    const [dense, setDense] = useState(false)
+    const [rowsPerPage, setRowsPerPage] = useState(5)
     const [updateOpen, setUpdateOpen] = useState(false)
     const [editRow, setEditRow] = useState(createUserData('', '', '', '', ''))
-    const [tab, setTab] = useState(0);
+    const [tab, setTab] = useState(0)
+    // all the rows containing the fetched data
+    const [rows, setRows] = useState([])
 
     const handleUpdateOpen = () => {
         setUpdateOpen(true)
@@ -218,15 +261,13 @@ export default function Database() {
         handleUpdateOpen()
     }
 
-    // all the rows containing the fetched data
-    const [rows, setRows] = useState([]);
-
     useEffect(() => {
         switch (tab) {
             case 0:
                 setOrderBy('Firstname')
                 break
             case 1:
+                setOrderBy('Firstname')
                 break
             case 2:
                 setOrderBy('Name')
@@ -248,6 +289,15 @@ export default function Database() {
                 })
                 break
             case 1:
+                onValue(ref(db, 'Children/'), (snapshot) => {
+                    const children = []
+                    snapshot.forEach(childSnapshot => {
+                        const child = childSnapshot.val()
+                        children.push(createChildData(
+                            child.cid, child.firstname, child.lastname, child.age.toString(), child.schoolClass))
+                    })
+                    setRows(children)
+                })
                 break
             case 2:
                 onValue(ref(db, 'Classes/'), (snapshot) => {
@@ -353,8 +403,18 @@ export default function Database() {
             <RenderUpdateDialog tab={tab} handleClose={handleUpdateClose} open={updateOpen} row={editRow}/>
             <Box sx={{width: '100%'}}>
                 <Paper sx={{width: '100%', mb: 2}}>
-                    {tab === 0 ?
-                        (<UserTableToolBar/>) : (<ClassTableToolBar selected={selected} setSelected={setSelected}/>)}
+                    {(() => {
+                        switch (tab) {
+                            case 0:
+                                return <UserTableToolBar/>
+                            case 1:
+                                return <ChildTableToolBar selected={selected} setSelected={setSelected}/>
+                            case 2:
+                                return <ClassTableToolBar selected={selected} setSelected={setSelected}/>
+                            default:
+                                return <DefaultComponent />
+                        }
+                    })()}
                     <TableContainer>
                         <Table
                             sx={{minWidth: 750}}
@@ -418,6 +478,38 @@ export default function Database() {
                                             )
                                         case 1:
                                             //Children table
+                                            isItemSelected = isSelected(row.cid)
+                                            return (
+                                                <TableRow
+                                                    hover
+                                                    onClick={(event) => handleClick(event, row.cid)}
+                                                    role="checkbox"
+                                                    aria-checked={isItemSelected}
+                                                    tabIndex={-1}
+                                                    key={row.cod}
+                                                    selected={isItemSelected}
+                                                    sx={{cursor: 'pointer'}}
+                                                >
+                                                    <TableCell
+                                                        component="th"
+                                                        id={labelId}
+                                                        scope="row"
+                                                    >
+                                                        {row.Firstname}
+                                                    </TableCell>
+                                                    <TableCell>{row.Lastname}</TableCell>
+                                                    <TableCell align="right" >{row.Age}</TableCell>
+                                                    <TableCell>{row.Class}</TableCell>
+                                                    <TableCell align="right">
+                                                        <IconButton onClick={() => {
+                                                            handleEdit(row)
+                                                            setSelected([]);
+                                                        }}>
+                                                            <EditOutlined/>
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )
                                             break
                                         case 2:
                                             //Classes table
