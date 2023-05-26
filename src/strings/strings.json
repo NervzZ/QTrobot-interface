@@ -1,5 +1,6 @@
 {
   "appVersion": "QTrobot interface v0.1.1",
+  "homePageName": "Home page",
   "databasePageName": "Database",
   "devPageName": "Dev",
   "visualisationPageName": "Visualisation"
