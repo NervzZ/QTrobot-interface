@@ -10,6 +10,8 @@ import {auth} from 'SRC/firebaseConfig'
 import {onAuthStateChanged} from "firebase/auth";
 import Authentication from "SRC/pages/Authentication/Authentication.jsx";
 import Loading from "SRC/components/common/Loading/Loading.jsx";
+import HomePage from "SRC/pages/HomePage/HomePage.jsx";
+import UserViewModel from "SRC/viewmodels/UserViewModel.jsx";
 
 const darkTheme = createTheme({
     palette: {
@@ -33,6 +35,7 @@ function App() {
         });
     }, [])
 
+
     if (isLoading) {
         return (
             <ThemeProvider theme={darkTheme}>
@@ -53,13 +56,44 @@ function App() {
 }
 
 function AppBody() {
+    const [userId, setUserId] = useState("");
+    const [isDev, setIsDev] = useState(false);
+
+    const userViewModel = new UserViewModel()
+
+    useEffect(() => {
+        return onAuthStateChanged(auth, (user) => {
+            if (user) {
+                setUserId(user.uid)
+            } else {
+                console.log("user not logged")
+            }
+        });
+    }, [])
+
+    useEffect(() => {
+        userViewModel.getUser(userId)
+            .then((usr) => {
+                setIsDev(usr.val().isDev)
+                console.log(usr.val().isDev)
+            })
+            .catch((error) => {
+                console.log(error)
+            })
+    }, [userId])
+
     return (
         <div>
             <Header/>
             <Routes>
-                <Route path="/" element={<Dev/>}/>
-                <Route path="/Database" element={<Database/>}/>
-                <Route path="/Visualisation" element={<Visualisation/>}/>
+                <Route path="/" element={<HomePage/>}/>
+                {isDev && (
+                    <>
+                        <Route path="/Visualisation" element={<Visualisation/>}/>
+                        <Route path="/Database" element={<Database/>}/>
+                        <Route path="/dev" element={<Dev/>}/>
+                    </>
+                )}
             </Routes>
             <Footer/>
         </div>

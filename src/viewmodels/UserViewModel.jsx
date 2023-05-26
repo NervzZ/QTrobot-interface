@@ -29,6 +29,10 @@ class UserViewModel {
                 }
             })
     }
+
+    getUser(uid) {
+        return get(child(ref(db), 'Users/' + uid))
+    }
 }
 
 export default UserViewModel;
