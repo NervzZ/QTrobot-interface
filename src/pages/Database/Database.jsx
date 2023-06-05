@@ -247,6 +247,18 @@ export default function Database() {
     const [tab, setTab] = useState(0)
     // all the rows containing the fetched data
     const [rows, setRows] = useState([])
+    const [classes, setClasses] = useState({})
+
+    useEffect(() => {
+        onValue(ref(db, 'Classes/'), (snapshot) => {
+            const classes = {}
+            snapshot.forEach(c => {
+                const schoolClass = c.val()
+                classes[schoolClass.cid] = schoolClass.name
+            })
+            setClasses(classes)
+        })
+    }, [])
 
     const handleUpdateOpen = () => {
         setUpdateOpen(true)
@@ -486,7 +498,7 @@ export default function Database() {
                                                     role="checkbox"
                                                     aria-checked={isItemSelected}
                                                     tabIndex={-1}
-                                                    key={row.cod}
+                                                    key={row.cid}
                                                     selected={isItemSelected}
                                                     sx={{cursor: 'pointer'}}
                                                 >
@@ -499,7 +511,7 @@ export default function Database() {
                                                     </TableCell>
                                                     <TableCell>{row.Lastname}</TableCell>
                                                     <TableCell align="right" >{row.Age}</TableCell>
-                                                    <TableCell>{row.Class}</TableCell>
+                                                    <TableCell>{classes[row.Class]}</TableCell>
                                                     <TableCell align="right">
                                                         <IconButton onClick={() => {
                                                             handleEdit(row)
