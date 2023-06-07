@@ -16,7 +16,7 @@ class ChildViewModel {
         return get(child(ref(db), 'Children/' + cid))
             .then((snapshot) => {
                 if (snapshot.exists()) {
-                    const child = new child(cid, lastname, firstname, parseInt(age), schoolClass)
+                    const child = new Child(cid, firstname, lastname, parseInt(age), schoolClass)
                     return set(ref(db, 'Children/' + cid), {...child})
                 } else {
                     return new Promise((resolve, reject) => {

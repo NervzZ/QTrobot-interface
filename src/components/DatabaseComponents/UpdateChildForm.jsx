@@ -1,12 +1,47 @@
 import {useEffect, useState} from "react";
-import {Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField} from "@mui/material";
+import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle, FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    TextField
+} from "@mui/material";
 import ChildViewModel from "SRC/viewmodels/ChildViewModel.jsx";
+import {onValue, ref} from "firebase/database";
+import {db} from "SRC/firebaseConfig.js";
+
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+    PaperProps: {
+        style: {
+            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+        },
+    },
+};
 
 export default function UpdateChildForm({handleClose, open, row}) {
     const [firstname, setFirstname] = useState(row.Firstname)
     const [lastname, setLastname] = useState(row.Lastname)
     const [age, setAge] = useState(row.Age)
     const [schoolClass, setSchoolClass] = useState(row.Class)
+
+    const [classes, setClasses] = useState({})
+
+    useEffect(() => {
+        onValue(ref(db, 'Classes/'), (snapshot) => {
+            const classes = {}
+            snapshot.forEach(c => {
+                const schoolClass = c.val()
+                classes[schoolClass.cid] = schoolClass.name
+            })
+            setClasses(classes)
+        })
+    }, [])
 
     useEffect(() => {
         setFirstname(row.Firstname)
@@ -44,7 +79,6 @@ export default function UpdateChildForm({handleClose, open, row}) {
             age,
             schoolClass)
             .then(() => {
-                setName('')
                 handleClose()
             })
             .catch((error) => {
@@ -87,6 +121,25 @@ export default function UpdateChildForm({handleClose, open, row}) {
                     onChange={handleAgeChange}
                     value={age}
                 />
+                <FormControl sx={{ mt: 2, minWidth: 160 }}>
+                    <InputLabel>Class name</InputLabel>
+                    <Select
+                        value={schoolClass}
+                        label="Class name"
+                        autoWidth
+                        onChange={handleSchoolClassChange}
+                        MenuProps={MenuProps}
+                    >
+                        {Object.entries(classes).map(([cid, name]) => (
+                            <MenuItem
+                                key={cid}
+                                value={cid}
+                            >
+                                {name}
+                            </MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleClose}>Cancel</Button>
