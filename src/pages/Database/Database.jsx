@@ -29,13 +29,14 @@ import ChildTableToolBar from "SRC/components/DatabaseComponents/ChildTableToolB
 import UpdateClassForm from "SRC/components/DatabaseComponents/UpdateClassForm.jsx";
 import UpdateChildForm from "SRC/components/DatabaseComponents/UpdateChildForm.jsx";
 
-function createUserData(UID, Firstname, Lastname, Email, Privilege) {
+function createUserData(UID, Firstname, Lastname, Email, Privilege, Classes) {
     return {
         UID,
         Firstname,
         Lastname,
         Email,
-        Privilege
+        Privilege,
+        Classes
     };
 }
 
@@ -112,6 +113,12 @@ const UserHeadCells = [
         numeric: false,
         disablePadding: false,
         label: 'Privilege',
+    },
+    {
+        id: 'Classes',
+        numeric: false,
+        disablePadding: false,
+        label: 'Classes'
     }
 ]
 
@@ -243,7 +250,8 @@ export default function Database() {
     const [dense, setDense] = useState(false)
     const [rowsPerPage, setRowsPerPage] = useState(5)
     const [updateOpen, setUpdateOpen] = useState(false)
-    const [editRow, setEditRow] = useState(createUserData('', '', '', '', ''))
+    const [editRow, setEditRow] =
+        useState(createUserData('', '', '', '', '', new Set()))
     const [tab, setTab] = useState(0)
     // all the rows containing the fetched data
     const [rows, setRows] = useState([])
@@ -295,7 +303,8 @@ export default function Database() {
                     const users = []
                     snapshot.forEach(usr => {
                         const user = usr.val()
-                        users.push(createUserData(user.uid, user.firstname, user.lastname, user.email, user.isDev))
+                        users.push(
+                            createUserData(user.uid, user.firstname, user.lastname, user.email, user.isDev, user.classes))
                     })
                     setRows(users)
                 })
@@ -424,7 +433,7 @@ export default function Database() {
                             case 2:
                                 return <ClassTableToolBar selected={selected} setSelected={setSelected}/>
                             default:
-                                return <DefaultComponent />
+                                return <DefaultComponent/>
                         }
                     })()}
                     <TableContainer>
@@ -478,6 +487,11 @@ export default function Database() {
                                                                 color={row.Privilege ? 'primary' : 'secondary'}/>
                                                         </ThemeProvider>
                                                     </TableCell>
+                                                    <TableCell>
+                                                        {Array.from(row.Classes || []).map((c) => (
+                                                            <>{classes[c]}, </>
+                                                        ))}
+                                                    </TableCell>
                                                     <TableCell align="right">
                                                         <IconButton onClick={() => {
                                                             handleEdit(row)
@@ -510,7 +524,7 @@ export default function Database() {
                                                         {row.Firstname}
                                                     </TableCell>
                                                     <TableCell>{row.Lastname}</TableCell>
-                                                    <TableCell align="right" >{row.Age}</TableCell>
+                                                    <TableCell align="right">{row.Age}</TableCell>
                                                     <TableCell>{classes[row.Class]}</TableCell>
                                                     <TableCell align="right">
                                                         <IconButton onClick={() => {

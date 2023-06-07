@@ -22,7 +22,7 @@ const MenuProps = {
             maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
         },
     },
-};
+}
 
 export default function CreateChildForm({handleClose, open}) {
     const [firstname, setFirstname] = useState('')
