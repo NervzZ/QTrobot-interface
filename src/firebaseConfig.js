@@ -20,9 +20,12 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig, "Primary");
+const secondaryApp = initializeApp(firebaseConfig, "Secondary");
 const analytics = getAnalytics(app);
 
 export const auth = getAuth(app);
+
+export const secondaryAuth = getAuth(secondaryApp)
 export default app
 export const db = getDatabase(app)
