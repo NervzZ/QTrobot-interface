@@ -1,18 +1,59 @@
 import * as React from "react";
 import {useEffect, useState} from "react";
 import UserViewModel from "SRC/viewmodels/UserViewModel.jsx";
-import {Button, Dialog, DialogActions, DialogContent, DialogTitle, Radio, RadioGroup, TextField} from "@mui/material";
+import {
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Radio,
+    RadioGroup,
+    Select,
+    TextField
+} from "@mui/material";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import {onValue, ref} from "firebase/database";
+import {db} from "SRC/firebaseConfig.js";
+
+const ITEM_HEIGHT = 48;
+const ITEM_PADDING_TOP = 8;
+const MenuProps = {
+    PaperProps: {
+        style: {
+            maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+        },
+    },
+}
 
 export default function UpdateUserForm({handleClose, open, row}) {
     const [firstname, setFirstname] = useState(row.Firstname)
     const [lastname, setLastname] = useState(row.Lastname)
     const [isDev, setIsDev] = useState(false)
+    const [classes, setClasses] = useState({})
+    const [selectedClass, setSelectedClass] = useState('')
+    const [thisClasses, setThisClasses] = useState(new Set())
+
+    useEffect(() => {
+        onValue(ref(db, 'Classes/'), (snapshot) => {
+            const classes = {}
+            snapshot.forEach(c => {
+                const schoolClass = c.val()
+                classes[schoolClass.cid] = schoolClass.name
+            })
+            setClasses(classes)
+        })
+    }, [])
 
     useEffect(() => {
         setFirstname(row.Firstname)
         setLastname(row.Lastname)
         setIsDev(row.Privilege)
+        const set = new Set(row.Classes)
+        setThisClasses(set)
     }, [row])
 
     const userViewModel = new UserViewModel()
@@ -29,8 +70,19 @@ export default function UpdateUserForm({handleClose, open, row}) {
         setIsDev(event.target.value === 'true')
     }
 
+    const handleSelectedClassChange = (event) => {
+        const set = new Set(thisClasses)
+        const val = event.target.value
+        if (set.has(val)) {
+            set.delete(val)
+        } else {
+            set.add(val)
+        }
+        setThisClasses(set)
+    }
+
     const handleSubmit = () => {
-        userViewModel.updateUser(row.UID, firstname, lastname, isDev)
+        userViewModel.updateUser(row.UID, firstname, lastname, isDev, thisClasses)
             .then(() => {
                 setFirstname('')
                 setLastname('')
@@ -79,6 +131,35 @@ export default function UpdateUserForm({handleClose, open, row}) {
                             label="Professor"
                         />
                     </RadioGroup>
+                    {!isDev &&
+                        <>
+                            <InputLabel>Selected Classes :</InputLabel>
+                            <div>
+                                {Array.from(thisClasses).map((c) => (
+                                    <>{classes[c]}, </>
+                                ))}
+                            </div>
+                            <FormControl sx={{mt: 2, minWidth: 160}}>
+                                <InputLabel>Select classes</InputLabel>
+                                <Select
+                                    value={selectedClass}
+                                    label="Select classes"
+                                    autoWidth
+                                    onChange={handleSelectedClassChange}
+                                    MenuProps={MenuProps}
+                                >
+                                    {Object.entries(classes).map(([cid, name]) => (
+                                        <MenuItem
+                                            key={cid}
+                                            value={cid}
+                                        >
+                                            {name}
+                                        </MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </>
+                    }
                 </div>
             </DialogContent>
             <DialogActions>
