@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {alpha} from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -13,41 +13,24 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
-import Checkbox from '@mui/material/Checkbox';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
-import DeleteIcon from '@mui/icons-material/Delete';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import {visuallyHidden} from '@mui/utils';
+import {onValue, ref} from "firebase/database";
+import {db} from "SRC/firebaseConfig.js";
 
-function createData(firstName, lastName, age, context, opt) {
+function createChildData(cid, Firstname, Lastname, Age, Class) {
     return {
-        firstName,
-        lastName,
-        age,
-        context,
-        opt,
-    };
+        cid,
+        Firstname,
+        Lastname,
+        Age,
+        Class
+    }
 }
-
-const rows = [
-    createData('Jimmy', 'Poppin', 12, 'Stretching', 'optional-arg-1'),
-    createData('Harry', 'Potter', 7, 'Meditation', 'optional-arg-4'),
-    createData('Martin', 'Smith', 8, 'Writing', 'optional-arg-2'),
-    createData('Tom', 'Glasgow', 13, 'Stretching', 'optional-arg-7'),
-    createData('Jerry', 'Oneil', 12, 'Counting', 'optional-arg-2'),
-    createData('Mohamed', 'Ali', 6, 'Stretching', 'optional-arg-1'),
-    createData('Michael', 'Jordan', 6, 'Meditation', 'optional-arg-1'),
-    createData('Sandy', 'Granger', 7, 'Counting', 'optional-arg-3'),
-    createData('Ernest', 'Kunzler', 9, 'Counting', 'optional-arg-4'),
-    createData('Carl', 'Traut', 11, 'Meditation', 'optional-arg-4'),
-    createData('Jade', 'Klein', 10, 'Stretching', 'optional-arg-5'),
-    createData('Zoe', 'Stutler', 5, 'Meditation', 'optional-arg-1'),
-    createData('Chloe', 'Hank', 12, 'Writing', 'optional-arg-6'),
-    createData('Marc', 'Portman', 7, 'Writing', 'optional-arg-2'),
-];
 
 function descendingComparator(a, b, orderBy) {
     if (b[orderBy] < a[orderBy]) {
@@ -83,36 +66,30 @@ function stableSort(array, comparator) {
 
 const headCells = [
     {
-        id: 'firstName',
+        id: 'Firstname',
         numeric: false,
         disablePadding: false,
-        label: 'First Name',
+        label: 'Firstname',
     },
     {
-        id: 'lastName',
+        id: 'Lastname',
         numeric: false,
         disablePadding: false,
-        label: 'lastName',
+        label: 'Lastname',
     },
     {
-        id: 'age',
+        id: 'Age',
         numeric: true,
         disablePadding: false,
         label: 'Age',
     },
     {
-        id: 'context',
+        id: 'Class',
         numeric: false,
         disablePadding: false,
-        label: 'Context',
-    },
-    {
-        id: 'opt',
-        numeric: false,
-        disablePadding: false,
-        label: 'Optional argument (placeholder)',
-    },
-];
+        label: 'Class',
+    }
+]
 
 function EnhancedTableHead(props) {
     const {onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort} =
@@ -165,10 +142,6 @@ const EnhancedTableToolbar = ({numSelected}) =>
         sx={{
             pl: {sm: 2},
             pr: {xs: 1, sm: 1},
-            ...(numSelected > 0 && {
-                bgcolor: (theme) =>
-                    alpha(theme.palette.primary.main, theme.palette.action.activatedOpacity),
-            }),
         }}
     >
         <Typography
@@ -198,6 +171,29 @@ const EnhancedTable = ({onRowSelect}) => {
     const [page, setPage] = React.useState(0);
     const [dense, setDense] = React.useState(false);
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
+    const [rows, setRows] = useState([])
+    const [classes, setClasses] = useState({})
+
+    useEffect(() => {
+        onValue(ref(db, 'Classes/'), (snapshot) => {
+            const classes = {}
+            snapshot.forEach(c => {
+                const schoolClass = c.val()
+                classes[schoolClass.cid] = schoolClass.name
+            })
+            setClasses(classes)
+        })
+
+        onValue(ref(db, 'Children/'), (snapshot) => {
+            const children = []
+            snapshot.forEach(childSnapshot => {
+                const child = childSnapshot.val()
+                children.push(createChildData(
+                    child.cid, child.firstname, child.lastname, child.age.toString(), child.schoolClass))
+            })
+            setRows(children)
+        })
+    }, [])
 
     const handleRequestSort = (event, property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -207,34 +203,20 @@ const EnhancedTable = ({onRowSelect}) => {
 
     const handleSelectAllClick = (event) => {
         if (event.target.checked) {
-            const newSelected = rows.map((n) => n.firstName);
+            const newSelected = rows.map((n) => n.cid);
             setSelected(newSelected);
             return;
         }
         setSelected([]);
     };
 
-    /* TODO - DELETE THIS LATER
-    const handleClick = (event, firstName) => {
-        const selectedIndex = selected.indexOf(firstName);
-        let newSelected = [];
-
-        if (selectedIndex === -1) {
-            newSelected = newSelected.concat(selected, firstName);
-        } else if (selectedIndex === 0) {
-            newSelected = newSelected.concat(selected.slice(1));
-        } else if (selectedIndex === selected.length - 1) {
-            newSelected = newSelected.concat(selected.slice(0, -1));
-        } else if (selectedIndex > 0) {
-            newSelected = newSelected.concat(
-                selected.slice(0, selectedIndex),
-                selected.slice(selectedIndex + 1),
-            );
-        }
-
-        setSelected(newSelected);
-    };
-     */
+    const handleClick = (event, row) => {
+        const selectedIndex = selected.indexOf(row.cid);
+        let newSelected = [row.cid];
+        setSelected(newSelected)
+        console.log(row.Firstname)
+        onRowSelect(`${row.Firstname} ${row.Lastname} -age ${row.Age}`)
+    }
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
@@ -277,20 +259,19 @@ const EnhancedTable = ({onRowSelect}) => {
                             {stableSort(rows, getComparator(order, orderBy))
                                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 .map((row, index) => {
-                                    const isItemSelected = isSelected(row.firstName);
+                                    const isItemSelected = isSelected(row.cid);
                                     const labelId = `enhanced-table-checkbox-${index}`;
 
                                     return (
                                         <TableRow
                                             hover
-                                            onClick={() => {
-                                                onRowSelect(
-                                                    `ros_command -${row.opt} ${row.firstName} ${row.lastName} -c ${row.context} -a ${row.age}`)
+                                            onClick={(e) => {
+                                                handleClick(e, row)
                                             }}
                                             role="checkbox"
                                             aria-checked={isItemSelected}
                                             tabIndex={-1}
-                                            key={row.firstName}
+                                            key={row.cid}
                                             selected={isItemSelected}
                                         >
                                             <TableCell
@@ -298,12 +279,11 @@ const EnhancedTable = ({onRowSelect}) => {
                                                 id={labelId}
                                                 scope="row"
                                             >
-                                                {row.firstName}
+                                                {row.Firstname}
                                             </TableCell>
-                                            <TableCell align="left">{row.lastName}</TableCell>
-                                            <TableCell align="right">{row.age}</TableCell>
-                                            <TableCell align="left">{row.context}</TableCell>
-                                            <TableCell align="left">{row.opt}</TableCell>
+                                            <TableCell align="left">{row.Lastname}</TableCell>
+                                            <TableCell align="right">{row.Age}</TableCell>
+                                            <TableCell align="left">{classes[row.Class]}</TableCell>
                                         </TableRow>
                                     );
                                 })}

@@ -1,4 +1,4 @@
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import 'SRC/App.css'
 
 import Table from 'SRC/components/common/SortedTable/SortedTable.jsx'
@@ -6,9 +6,16 @@ import Box from '@mui/material/Box'
 import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import CopyIcon from '@mui/icons-material/ContentCopy'
+import CommandSelect from "SRC/components/DevComponents/CommandSelect.jsx";
 
 const Dev = () => {
-    const [commandFieldValue, setCommandFieldValue] = useState('');
+    const [chosenChildValues, setChosenChildValues] = useState('');
+    const [commandState, setCommandState] = useState('rosrun')
+    const [command, setCommand] = useState('')
+
+    useEffect(() => {
+        updateCommandField()
+    }, [chosenChildValues, commandState])
 
     const handleCopyClick = (string) => {
         navigator.clipboard.writeText(string).then(
@@ -22,11 +29,21 @@ const Dev = () => {
     }
 
     const handleChange = (event) => {
-        setCommandFieldValue(event.target.value)
+        setCommand(event.target.value)
     }
 
     const handleRowSelect = (string) => {
-        setCommandFieldValue(string)
+        setChosenChildValues(string)
+    }
+
+    const onCommandChange = (string) => {
+        setCommandState(string)
+    }
+
+    const updateCommandField = () => {
+        if (chosenChildValues.length !== 0) {
+            setCommand(`${commandState} -c context ${chosenChildValues}`)
+        }
     }
 
     return (
@@ -37,6 +54,15 @@ const Dev = () => {
             <Table
                 onRowSelect={handleRowSelect}
             />
+            <div style={{
+                width: '100%',
+                textAlign: 'left',
+            }}>
+                <CommandSelect
+                    commandState={commandState}
+                    onCommandChange={onCommandChange}
+                />
+            </div>
             <Box
                 sx={{
                     display: 'flex'
@@ -48,13 +74,13 @@ const Dev = () => {
                     variant="outlined"
                     fullWidth
                     onChange={handleChange}
-                    value={commandFieldValue}
+                    value={command}
                 />
                 <IconButton
                     type="button"
                     sx={{p: '10px'}}
                     aria-label="Copy"
-                    onClick={() => handleCopyClick(commandFieldValue)}
+                    onClick={() => handleCopyClick(command)}
                 >
                     <CopyIcon/>
                 </IconButton>
