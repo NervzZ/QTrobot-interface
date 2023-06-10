@@ -7,15 +7,18 @@ import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import CopyIcon from '@mui/icons-material/ContentCopy'
 import CommandSelect from "SRC/components/DevComponents/CommandSelect.jsx";
+import contextSelect from "SRC/components/DevComponents/ContextSelect.jsx";
+import ContextSelect from "SRC/components/DevComponents/ContextSelect.jsx";
 
 const Dev = () => {
     const [chosenChildValues, setChosenChildValues] = useState('');
     const [commandState, setCommandState] = useState('rosrun')
+    const [context, setContext] = useState('writing')
     const [command, setCommand] = useState('')
 
     useEffect(() => {
         updateCommandField()
-    }, [chosenChildValues, commandState])
+    }, [chosenChildValues, commandState, context])
 
     const handleCopyClick = (string) => {
         navigator.clipboard.writeText(string).then(
@@ -40,9 +43,13 @@ const Dev = () => {
         setCommandState(string)
     }
 
+    const onContextChange = (string) => {
+        setContext(string)
+    }
+
     const updateCommandField = () => {
         if (chosenChildValues.length !== 0) {
-            setCommand(`${commandState} -c context ${chosenChildValues}`)
+            setCommand(`${commandState} -c ${context} ${chosenChildValues}`)
         }
     }
 
@@ -54,6 +61,15 @@ const Dev = () => {
             <Table
                 onRowSelect={handleRowSelect}
             />
+            <div style={{
+                width: '100%',
+                textAlign: 'left',
+            }}>
+                <ContextSelect
+                    value={context}
+                    onChange={onContextChange}
+                />
+            </div>
             <div style={{
                 width: '100%',
                 textAlign: 'left',

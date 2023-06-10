@@ -8,7 +8,7 @@ export default function CommandSelect({commandState, onCommandChange}) {
     }
 
     return (
-        <FormControl>
+        <FormControl sx={{mb: 2}}>
             <FormLabel id="demo-radio-buttons-group-label">Command type</FormLabel>
             <RadioGroup
                 row
