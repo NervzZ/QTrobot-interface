@@ -57,9 +57,9 @@ const Dev = () => {
             body: JSON.stringify({command}),
         })
             .then(response => response.json())
-            .then(data => console.log(data.response))
+            .then(data => alert(data.response))
             .catch((error) => {
-                console.error('Error:', error);
+                alert(`Error: ${error}`);
             });
     }
 
