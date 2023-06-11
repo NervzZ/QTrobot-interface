@@ -9,6 +9,8 @@ import CopyIcon from '@mui/icons-material/ContentCopy'
 import CommandSelect from "SRC/components/DevComponents/CommandSelect.jsx";
 import ContextSelect from "SRC/components/DevComponents/ContextSelect.jsx";
 import Button from "@mui/material/Button";
+import {uploadBytes, ref} from "firebase/storage";
+import {storage} from "SRC/firebaseConfig.js";
 
 const Dev = () => {
     const [chosenChildValues, setChosenChildValues] = useState('');
@@ -56,10 +58,29 @@ const Dev = () => {
             },
             body: JSON.stringify({command}),
         })
-            .then(response => response.json())
-            .then(data => alert(data.response))
+            .then(response => {
+                if (response.status !== 200) {
+                    return response.json().then(r => {
+                        throw new Error(r.error)
+                    })
+                }
+                return response.json();
+            })
+            .then(data => {
+                const content = atob(data.data)
+                const file = new Blob([content], {type: 'application/octet-stream'})
+                const storageRef = ref(storage, `commandOutputs/${data.file}`)
+
+                uploadBytes(storageRef, file)
+                    .then((snapshot) => {
+                        alert(`The results stored in the file ${data.file} are: \n${content}\n\n This file has been uploaded.`)
+                    })
+                    .catch((error) => {
+                        alert(`Error: ${error}`)
+                    })
+            })
             .catch((error) => {
-                alert(`Error: ${error}`);
+                alert(error);
             });
     }
 
