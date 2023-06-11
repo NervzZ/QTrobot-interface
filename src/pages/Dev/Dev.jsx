@@ -56,7 +56,15 @@ const Dev = () => {
             },
             body: JSON.stringify({command}),
         })
-            .then(response => response.json())
+            .then(response => {
+                if (response.status === 200) {
+                    // success
+                    return response.json();
+                } else {
+                    //failure
+                    alert(response.error)
+                }
+            })
             .then(data => alert(data.response))
             .catch((error) => {
                 alert(`Error: ${error}`);
