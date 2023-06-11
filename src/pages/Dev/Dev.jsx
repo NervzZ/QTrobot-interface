@@ -9,8 +9,7 @@ import CopyIcon from '@mui/icons-material/ContentCopy'
 import CommandSelect from "SRC/components/DevComponents/CommandSelect.jsx";
 import ContextSelect from "SRC/components/DevComponents/ContextSelect.jsx";
 import Button from "@mui/material/Button";
-import {ref} from "firebase/database";
-import {uploadBytes} from "firebase/storage";
+import {uploadBytes, ref} from "firebase/storage";
 import {storage} from "SRC/firebaseConfig.js";
 
 const Dev = () => {
