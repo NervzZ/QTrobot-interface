@@ -11,7 +11,7 @@ app.post('/run-command', (req, res) => {
     const commandPrefix = command.split(' ')[0];
 
     if (commandPrefix !== 'rosrun' && commandPrefix !== 'roslaunch') {
-        return res.status(400).json({error: 'Invalid command.'});
+        return res.status(400).json({ error: 'Invalid command.' });
     }
 
     exec('ls', (error, stdout, stderr) => {
