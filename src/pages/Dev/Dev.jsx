@@ -57,7 +57,7 @@ const Dev = () => {
             body: JSON.stringify({command}),
         })
             .then(response => {
-                if (!response.status !== 200) {
+                if (!response.status === 200) {
                     return response.json().then(r => { throw new Error(r.error) })
                 }
                 return response.json();
