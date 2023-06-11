@@ -1,10 +1,11 @@
 import 'SRC/App.css'
 import {FormControl, InputLabel, MenuItem, Select} from "@mui/material"
 import {useEffect, useState} from "react"
-import {Download} from "@mui/icons-material"
+import {Download, Image} from "@mui/icons-material"
 import Button from "@mui/material/Button"
 import {getDownloadURL, listAll, ref} from "firebase/storage"
 import {storage} from "SRC/firebaseConfig.js"
+import Box from "@mui/material/Box";
 
 
 const Visualisation = () => {
@@ -20,7 +21,7 @@ const Visualisation = () => {
             .then((res) => {
                 const promises = res.items.map((item) =>
                     getDownloadURL(ref(storage, item.fullPath)).then((url) => {
-                        return { [item.name]: url };
+                        return {[item.name]: url};
                     })
                 );
                 return Promise.all(promises);
@@ -54,43 +55,48 @@ const Visualisation = () => {
         <div className="App" style={{
             maxWidth: '950px',
             margin: '50px auto',
-            textAlign: 'left',
         }}>
-            <FormControl sx={{m: 1, minWidth: 350}}>
-                <InputLabel id="demo-simple-select-helper-label">Online files</InputLabel>
-                <Select
-                    labelId="demo-simple-select-helper-label"
-                    id="demo-simple-select-helper"
-                    value={file}
-                    label="Online files"
-                    onChange={handleFileChange}
+            <div style={{width: '100%', textAlign:'left'}}>
+                <FormControl sx={{m: 1, minWidth: 350}}>
+                    <InputLabel id="demo-simple-select-helper-label">Online files</InputLabel>
+                    <Select
+                        labelId="demo-simple-select-helper-label"
+                        id="demo-simple-select-helper"
+                        value={file}
+                        label="Online files"
+                        onChange={handleFileChange}
+                    >
+                        {Object.entries(fileRefs).map(([file, url]) => (
+                            <MenuItem key={file} value={url}>{file}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>
+                <FormControl sx={{m: 1, minWidth: 100}}>
+                    <InputLabel id="demo-simple-select-helper-label">format</InputLabel>
+                    <Select
+                        labelId="demo-simple-select-helper-label"
+                        id="demo-simple-select-helper"
+                        value={format}
+                        label="Format"
+                        onChange={handleFormatChange}
+                    >
+                        <MenuItem value={'.pdf'}>.pdf</MenuItem>
+                        <MenuItem value={'.csv'}>.csv</MenuItem>
+                    </Select>
+                </FormControl>
+                <Button
+                    sx={{mt: 2, ml: 2}}
+                    variant="outlined"
+                    startIcon={<Download/>}
+                    onClick={handleDownload}
                 >
-                    {Object.entries(fileRefs).map(([file, url]) => (
-                        <MenuItem key={file} value={url}>{file}</MenuItem>
-                    ))}
-                </Select>
-            </FormControl>
-            <FormControl sx={{m: 1, minWidth: 100}}>
-                <InputLabel id="demo-simple-select-helper-label">format</InputLabel>
-                <Select
-                    labelId="demo-simple-select-helper-label"
-                    id="demo-simple-select-helper"
-                    value={format}
-                    label="Format"
-                    onChange={handleFormatChange}
-                >
-                    <MenuItem value={'.pdf'}>.pdf</MenuItem>
-                    <MenuItem value={'.csv'}>.csv</MenuItem>
-                </Select>
-            </FormControl>
-            <Button
-                sx={{mt: 2, ml: 2}}
-                variant="outlined"
-                startIcon={<Download/>}
-                onClick={handleDownload}
-            >
-                Download
-            </Button>
+                    Download
+                </Button>
+            </div>
+            <h1>Visualisation 1</h1>
+            <Box>
+                <img style={{maxWidth: '100%'}} src="SRC/img/graphs_placeholder.png" alt="placeholder-graphs" />
+            </Box>
         </div>
     )
 }
