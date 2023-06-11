@@ -8,20 +8,20 @@ import {useNavigate} from "react-router-dom";
 const HomePage = () => {
     const images = [
         {
-            url: '',
+            url: 'SRC/img/QTrobot.png',
             title: 'Story Telling',
             width: '33.33%',
             path: '/'
         },
         {
-            url: '',
-            title: 'QT activities',
+            url: 'SRC/img/children.png',
+            title: 'Children Data',
             width: '33.33%',
             path: '/'
         },
         {
-            url: '',
-            title: 'Others',
+            url: 'SRC/img/tablet_writing.jpg',
+            title: 'Other activities',
             width: '33.33%',
             path: '/'
         },
