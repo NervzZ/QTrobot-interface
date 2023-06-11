@@ -95,7 +95,7 @@ const Visualisation = () => {
             </div>
             <h1>Visualisation 1</h1>
             <Box>
-                <img style={{maxWidth: '100%'}} src="/img/graphs_placeholder.png" alt="placeholder-graphs" />
+                <img style={{maxWidth: '100%'}} src="/public/img/graphs_placeholder.png" alt="placeholder-graphs" />
             </Box>
         </div>
     )
