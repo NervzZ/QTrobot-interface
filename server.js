@@ -19,7 +19,7 @@ app.post('/run-command', (req, res) => {
      * The final implementation for the end product will simply use the command constant defined above which will be
      * either a ros
      */
-    exec(`echo "your command is : ${command}, the run date is : DATE" > /out/result.DATE.txt`, (error, stdout, stderr) => {
+    exec(`echo "your command is : ${command}, the run date is : DATE" > out/result.DATE.txt`, (error, stdout, stderr) => {
         if (error) {
             res.status(500).json({ error: `error: ${error.message}` })
             return
