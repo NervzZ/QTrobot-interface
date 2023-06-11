@@ -150,7 +150,7 @@ const EnhancedTableToolbar = ({numSelected}) =>
             id="tableTitle"
             component="div"
         >
-            Kids Data
+            Children data
         </Typography>
 
         <Tooltip title="Filter list">
@@ -189,7 +189,7 @@ const EnhancedTable = ({onRowSelect}) => {
             snapshot.forEach(childSnapshot => {
                 const child = childSnapshot.val()
                 children.push(createChildData(
-                    child.cid, child.firstname, child.lastname, child.age.toString(), child.schoolClass))
+                    child.cid, child.firstname, child.lastname, child.age, child.schoolClass))
             })
             setRows(children)
         })
