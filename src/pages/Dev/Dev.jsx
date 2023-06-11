@@ -62,7 +62,7 @@ const Dev = () => {
                 }
                 return response.json();
             })
-            .then(data => alert(data.response))
+            .then(data => alert(`The results stored in the file ${data.file} are: \n ${data.data}`))
             .catch((error) => {
                 alert(error);
             });
