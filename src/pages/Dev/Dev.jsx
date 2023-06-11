@@ -7,14 +7,15 @@ import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import CopyIcon from '@mui/icons-material/ContentCopy'
 import CommandSelect from "SRC/components/DevComponents/CommandSelect.jsx";
-import contextSelect from "SRC/components/DevComponents/ContextSelect.jsx";
 import ContextSelect from "SRC/components/DevComponents/ContextSelect.jsx";
+import Button from "@mui/material/Button";
 
 const Dev = () => {
     const [chosenChildValues, setChosenChildValues] = useState('');
     const [commandState, setCommandState] = useState('rosrun')
     const [context, setContext] = useState('writing')
     const [command, setCommand] = useState('')
+    const [canRun, setCanRun] = useState(false)
 
     useEffect(() => {
         updateCommandField()
@@ -47,9 +48,27 @@ const Dev = () => {
         setContext(string)
     }
 
+    const onRunClick = () => {
+        fetch('http://127.0.0.1:3000/run-command', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({command}),
+        })
+            .then(response => response.text())
+            .then(data => console.log(data.response))
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+    }
+
     const updateCommandField = () => {
         if (chosenChildValues.length !== 0) {
             setCommand(`${commandState} -c ${context} ${chosenChildValues}`)
+            setCanRun(true)
+        } else {
+            setCanRun(false)
         }
     }
 
@@ -81,7 +100,8 @@ const Dev = () => {
             </div>
             <Box
                 sx={{
-                    display: 'flex'
+                    display: 'flex',
+                    mb: 2
                 }}
             >
                 <TextField
@@ -100,6 +120,15 @@ const Dev = () => {
                 >
                     <CopyIcon/>
                 </IconButton>
+            </Box>
+            <Box sx={{textAlign: 'left'}}>
+                <Button
+                    variant="contained"
+                    onClick={onRunClick}
+                    disabled={!canRun}
+                >
+                    Run
+                </Button>
             </Box>
         </div>
     )
