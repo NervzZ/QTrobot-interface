@@ -14,6 +14,11 @@ app.post('/run-command', (req, res) => {
         return res.status(400).json({ error: 'Invalid command.' });
     }
 
+    /**
+     * TODO - for testing purposes we are using "ls" as the command to execute as it's an available command on Ubuntu.
+     * The final implementation for the end product will simply use the command constant defined above which will be
+     * either a ros
+     */
     exec('ls', (error, stdout, stderr) => {
         if (error) {
             res.status(500).json({ error: `error: ${error.message}` });
@@ -25,10 +30,6 @@ app.post('/run-command', (req, res) => {
         }
         res.status(200).json({ response: stdout });
     });
-})
-
-app.get('/', (req, res) => {
-    res.send('Hello, World!');
 })
 
 app.listen(3000, () => {
