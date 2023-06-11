@@ -2,9 +2,10 @@ import express from 'express'
 import {exec} from 'child_process'
 import cors from 'cors'
 import fs from "fs";
+import {ref} from "firebase/database";
+const { storage } = require('./src/firebaseConfig.js');
+
 const app = express();
-
-
 
 app.use(express.json())
 app.use(cors())
@@ -35,12 +36,12 @@ app.post('/run-command', (req, res) => {
             res.status(500).json({ error: `stderr: ${stderr}` })
             return
         }
-        fs.readFile(`out/${fileName}`, 'utf8', (err, data) => {
+        fs.readFile(`out/${fileName}`, { encoding: 'base64' }, (err, data) => {
             if (err) {
                 console.error(err);
                 return res.status(500).json({ error: err.toString() })
             }
-            res.status(200).json({ data: data, file: fileName })
+            res.status(200).send({ data: data, file: fileName })
         })
     })
 })
