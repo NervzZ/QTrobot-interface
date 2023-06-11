@@ -150,7 +150,7 @@ const EnhancedTableToolbar = ({numSelected}) =>
             id="tableTitle"
             component="div"
         >
-            Kids Data
+            Children data
         </Typography>
 
         <Tooltip title="Filter list">
