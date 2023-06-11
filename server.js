@@ -2,8 +2,6 @@ import express from 'express'
 import {exec} from 'child_process'
 import cors from 'cors'
 import fs from "fs";
-import {ref} from "firebase/database";
-const { storage } = require('./src/firebaseConfig.js');
 
 const app = express();
 
@@ -15,11 +13,11 @@ app.post('/run-command', (req, res) => {
     const commandPrefix = command.split(' ')[0]
     const date = new Date();
     // YYYY.MM.DD_HH:MM:SS
-    const formattedDate = `${date.getFullYear()}.${date.getMonth()+1}.${date.getDate()}_${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+    const formattedDate = `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}_${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
     const fileName = `result-${formattedDate}.txt`;
 
     if (commandPrefix !== 'rosrun' && commandPrefix !== 'roslaunch') {
-        return res.status(400).json({ error: 'Invalid command.' })
+        return res.status(400).json({error: 'Invalid command.'})
     }
 
     /**
@@ -29,19 +27,19 @@ app.post('/run-command', (req, res) => {
      */
     exec(`echo "your command is : ${command} and it was executed on the : ${formattedDate}" > out/${fileName}`, (error, stdout, stderr) => {
         if (error) {
-            res.status(500).json({ error: `error: ${error.message}` })
+            res.status(500).json({error: `error: ${error.message}`})
             return
         }
         if (stderr) {
-            res.status(500).json({ error: `stderr: ${stderr}` })
+            res.status(500).json({error: `stderr: ${stderr}`})
             return
         }
-        fs.readFile(`out/${fileName}`, { encoding: 'base64' }, (err, data) => {
+        fs.readFile(`out/${fileName}`, {encoding: 'base64'}, (err, data) => {
             if (err) {
                 console.error(err);
-                return res.status(500).json({ error: err.toString() })
+                return res.status(500).json({error: err.toString()})
             }
-            res.status(200).send({ data: data, file: fileName })
+            res.status(200).send({data: data, file: fileName})
         })
     })
 })
