@@ -49,7 +49,7 @@ const Dev = () => {
     }
 
     const onRunClick = () => {
-        fetch('http://127.0.0.1:3000/run-command', {
+        fetch('http://192.168.1.171:3000/run-command', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
