@@ -1,26 +1,29 @@
 import 'SRC/App.css'
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import {ButtonBase, styled} from "@mui/material";
-import {useNavigate} from "react-router-dom";
+import Box from "@mui/material/Box"
+import Typography from "@mui/material/Typography"
+import {ButtonBase, styled} from "@mui/material"
+import {useNavigate} from "react-router-dom"
+import qtimg from 'SRC/assets/img/QTrobot.png'
+import childrenimg from 'SRC/assets/img/children.png'
+import tabletWritingImg from 'SRC/assets/img/tablet_writing.jpg'
 
 
 const HomePage = () => {
     const images = [
         {
-            url: '/public/img/QTrobot.png',
+            url: qtimg,
             title: 'Story Telling',
             width: '33.33%',
             path: '/'
         },
         {
-            url: '/public/img/children.png',
+            url: childrenimg,
             title: 'Children Data',
             width: '33.33%',
             path: '/'
         },
         {
-            url: '/public/img/tablet_writing.jpg',
+            url: tabletWritingImg,
             title: 'Other activities',
             width: '33.33%',
             path: '/'

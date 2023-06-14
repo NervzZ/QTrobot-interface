@@ -6,6 +6,7 @@ import Button from "@mui/material/Button"
 import {getDownloadURL, listAll, ref} from "firebase/storage"
 import {storage} from "SRC/firebaseConfig.js"
 import Box from "@mui/material/Box";
+import placeholderGraphImg from 'SRC/assets/img/graphs_placeholder.png'
 
 
 const Visualisation = () => {
@@ -95,7 +96,7 @@ const Visualisation = () => {
             </div>
             <h1>Visualisation 1</h1>
             <Box>
-                <img style={{maxWidth: '100%'}} src="/public/img/graphs_placeholder.png" alt="placeholder-graphs" />
+                <img style={{maxWidth: '100%'}} src={placeholderGraphImg} alt="placeholder-graphs" />
             </Box>
         </div>
     )
